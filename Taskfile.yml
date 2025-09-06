@@ -1,0 +1,21 @@
+version: '3'
+
+tasks:
+  update:
+    cmds:
+      - sudo nix flake update -v
+      - sudo nixos-rebuild switch --upgrade --impure --flake . -v
+
+  clean:
+    cmds:
+      - nix-collect-garbage
+      - nix-collect-garbage -d
+      # - nix-store --optimize
+      - sudo nix-collect-garbage -d
+      - sudo nixos-rebuild switch --upgrade --impure --flake . -v
+
+  firmware:update:
+    cmds:
+      - sudo fwupdmgr refresh --force
+      - sudo fwupdmgr get-updates
+      - sudo fwupdmgr update
