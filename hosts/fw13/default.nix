@@ -1,5 +1,4 @@
-{ config, pkgs, ... }:
-{
+{ config, pkgs, ... }: {
   imports = [
     ./gnome.nix
     ./hardware-configuration.nix
@@ -16,18 +15,17 @@
       options = "--delete-older-than 30d";
     };
     optimise.automatic = true;
-    settings = {
-      experimental-features = [
-        "nix-command"
-        "flakes"
-      ];
-    };
+    settings = { experimental-features = [ "nix-command" "flakes" ]; };
   };
 
   boot = {
     loader = {
-      systemd-boot.enable = true;
+      systemd-boot = {
+        enable = true;
+        configurationLimit = 10;
+      };
       efi.canTouchEfiVariables = true;
+
     };
     kernelPackages = pkgs.linuxPackages_latest;
   };
@@ -56,11 +54,6 @@
   networking = {
     hostName = "fw13";
     networkmanager.enable = true;
-    # Not really sure why, but letting it use wpa_supplicant would result in
-    # wifi connect but be unusual randomly. Monitoring dmesg the only thing I
-    # could figure out is that capab=0x431 would be set when it wasn't working
-    # and 0x411 when it was (but could be a red herring).
-    wireless.iwd.enable = true;
   };
 
   hardware.bluetooth.enable = true;

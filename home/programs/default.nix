@@ -1,23 +1,12 @@
-{ config, pkgs, ... }:
-{
-  imports = [
-    ./programs/alacritty.nix
-    ./programs/git.nix
-    ./programs/neovim.nix
-    ./programs/tmux.nix
-    ./programs/zsh.nix
-  ];
+{ ... }: {
+  imports = [ ./alacritty.nix ./git.nix ./neovim ./tmux.nix ./zsh.nix ];
 
   programs = {
     direnv = {
       enable = true;
       enableZshIntegration = true;
       nix-direnv.enable = true;
-      config = {
-        whitelist = {
-          prefix = [ "~/src/ChrisRx" ];
-        };
-      };
+      config = { whitelist = { prefix = [ "~/src/ChrisRx" ]; }; };
     };
 
     ripgrep = {
@@ -48,10 +37,7 @@
       git = true;
       enableZshIntegration = true;
       icons = "auto";
-      extraOptions = [
-        "--group-directories-first"
-        "--header"
-      ];
+      extraOptions = [ "--group-directories-first" "--header" ];
     };
 
     starship = {
@@ -63,17 +49,22 @@
           impure_msg = "[impure](bold red)";
           pure_msg = "[pure](bold green)";
           unknown_msg = "[unknown shell](bold yellow)";
-          format = "via [❄️ $state( \($name\))](bold blue) ";
+          format = "via [❄️ $state( ($name))](bold blue) ";
         };
-        golang = {
-          symbol = " ";
-        };
+        golang = { symbol = " "; };
       };
     };
 
     yazi = {
       enable = true;
       enableZshIntegration = true;
+      settings = {
+        preview = {
+          image_quality = 90;
+          max_width = 8196;
+          max_height = 4800;
+        };
+      };
     };
   };
 }

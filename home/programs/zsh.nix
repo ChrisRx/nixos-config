@@ -1,19 +1,14 @@
-{ config, pkgs, ... }:
-{
+{ config, pkgs, ... }: {
   home.sessionVariables = {
     HISTSIZE = 10000;
     SAVEHIST = 10000;
   };
   home.shell.enableZshIntegration = true;
-  home.file = {
-    ".zshrc.extra".source = files/zshrc.extra;
-  };
+  home.file = { ".zshrc.extra".source = ../files/zshrc.extra; };
   programs.zsh = {
     enable = true;
 
-    autosuggestion = {
-      enable = true;
-    };
+    autosuggestion = { enable = true; };
 
     enableCompletion = true;
     completionInit = ''
@@ -40,12 +35,8 @@
         "gcloud"
       ];
     };
-    syntaxHighlighting = {
-      enable = true;
-    };
-    sessionVariables = {
-      SOMETHING = "OMG";
-    };
+    syntaxHighlighting = { enable = true; };
+    sessionVariables = { SOMETHING = "OMG"; };
     initContent = ''
       source $HOME/.zshrc.extra
     '';

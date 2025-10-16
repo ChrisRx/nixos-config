@@ -1,5 +1,4 @@
-{ config, pkgs, ... }:
-{
+{ config, pkgs, ... }: {
   home.packages = with pkgs; [
     # General
     sops
@@ -31,7 +30,8 @@
     protoc-gen-go-grpc
 
     # Cloud
-    (google-cloud-sdk.withExtraComponents [ google-cloud-sdk.components.gke-gcloud-auth-plugin ])
+    (google-cloud-sdk.withExtraComponents
+      [ google-cloud-sdk.components.gke-gcloud-auth-plugin ])
     awscli2
     azure-cli
     terraform
@@ -130,5 +130,14 @@
     templ
     nixd
     nixfmt-rfc-style
+
+    sqlite
+
+    duckdb
+    minio
+    minio-client
+    cmake
+    jq
+    dust
   ];
 }

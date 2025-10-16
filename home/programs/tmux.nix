@@ -1,5 +1,4 @@
-{ config, pkgs, ... }:
-{
+{ config, pkgs, ... }: {
   programs.tmux = {
     enable = true;
     shell = "${pkgs.zsh}/bin/zsh";
@@ -9,10 +8,7 @@
       # set -g default-shell ''${pkgs.zsh}/bin/zsh
       # ==================== Settings ====================
 
-      # set-option -sa terminal-overrides ",xterm*:Tc"
-      # set -g default-terminal "tmux-256color"
       set -g default-terminal "xterm-256color"
-      # set -ag terminal-overrides ",xterm-256color:RGB"
       set -ag terminal-overrides ",xterm-256color:RGB"
 
       # Turn the mouse on
