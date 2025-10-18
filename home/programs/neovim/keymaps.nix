@@ -159,18 +159,6 @@
         action = "<cmd>lua require('luasnip').expand()<cr>";
         options = { desc = "Expand snippet"; };
       }
-      # {
-      #   mode = "n";
-      #   key = "<tab>";
-      #   action = "<cmd>tabnext<cr>";
-      #   options.desc = "Go to the sub-sequent tab";
-      # }
-      # {
-      #   mode = "n";
-      #   key = "<S-tab>";
-      #   action = "<cmd>tabprevious<cr>";
-      #   options.desc = "Go to the previous tab";
-      # }
     ];
 
     # vim.keymap.set({"i"}, "<C-K>", function() ls.expand() end, {silent = true})
@@ -179,5 +167,6 @@
     #   -- https://vim.fandom.com/wiki/Replace_a_word_with_yanked_text#Alternative_mapping_for_paste
     #   ["p"] = { 'p:let @+=@0<CR>:let @"=@0<CR>', "Dont copy replaced text", opts = { silent = true } },
     # },
+
   };
 }

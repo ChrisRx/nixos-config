@@ -1,8 +1,5 @@
-{ config, pkgs, ... }:
-{
-  home.packages = with pkgs; [
-    git-credential-manager
-  ];
+{ pkgs, ... }: {
+  home.packages = with pkgs; [ git-credential-manager ];
 
   programs.git = {
     enable = true;
@@ -13,9 +10,7 @@
     ignores = [ "_taynes" ];
 
     extraConfig = {
-      pull = {
-        ff = "only";
-      };
+      pull = { ff = "only"; };
       credential = {
         credentialStore = "cache";
         cacheOptions = "--timeout=86400";
@@ -26,14 +21,8 @@
         name = "Chris Marshall";
         email = "chris@couch.life";
       };
-      url = {
-        "https://" = {
-          insteadOf = "git://";
-        };
-      };
-      init = {
-        defaultBranch = "main";
-      };
+      url = { "https://" = { insteadOf = "git://"; }; };
+      init = { defaultBranch = "main"; };
     };
 
   };

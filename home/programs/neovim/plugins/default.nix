@@ -15,44 +15,18 @@
 
   programs.nixvim = {
     plugins = {
-      rustaceanvim = {
+      colorizer = {
         enable = true;
         settings = {
-          server = {
-            default_settings = {
-              rust-analyzer = {
-                checkOnSave = true;
-                check = {
-                  command = "check";
-                  extraArgs = [ "--no-deps" ];
-                  features = "all";
-                };
-                procMacro = {
-                  enable = true;
-                  attributes.enable = true;
-                  ignored = {
-                    "async-trait" = [ "async_trait" ];
-                    "napi-derive" = [ "napi" ];
-                    "async-recursion" = [ "async_recursion" ];
-                    "ctor" = [ "ctor" ];
-                    "tokio" = [ "test" ];
-                  };
-                };
-                diagnostics.disabled = [
-                  "macro-error"
-                  "unlinked-file"
-                  "unresolved-macro-call"
-                  "unresolved-proc-macro"
-                  "proc-macro-disabled"
-                  "proc-macro-expansion-error"
-                ];
-              };
-            };
-          };
+          RRGGBB = true;
+          tailwind = true;
         };
       };
-      glow = { enable = true; };
-      which-key = { enable = true; };
+      comment = { enable = true; };
+      gitlinker = {
+        # default mapping: <leader>gy
+        enable = true;
+      };
       gitsigns = {
         enable = true;
         settings = {
@@ -62,44 +36,34 @@
           };
         };
       };
-      gitlinker = { enable = true; };
+      glow = { enable = true; };
+      indent-blankline = {
+        enable = true;
+        settings = {
+          indent = { char = "│"; };
+          scope.enabled = false;
+        };
+      };
       lastplace = { enable = true; };
       luasnip = {
         enable = true;
         # fromLua = [{ paths = ./snippets; }];
       };
-      web-devicons = {
+      mini = {
         enable = true;
-        autoLoad = true;
-        settings = {
-          color_icons = true;
-          variant = "dark";
-          strict = true;
-        };
-      };
-      comment = { enable = true; };
-      tmux-navigator = {
-        enable = true;
-        autoLoad = true;
-        settings = { disable_when_zoomed = 1; };
-      };
-
-      telescope = { enable = true; };
-      colorizer = {
-        enable = true;
-        settings = {
-          RRGGBB = true;
-          tailwind = true;
-        };
-      };
-      trouble = { enable = true; };
-      # indent-blankline.enable = true;
-      notify = {
-        enable = true;
-        # remove animations for performance
-        settings = {
-          stages = "static";
-          timeout = 5000;
+        modules = {
+          pairs = { enable = true; };
+          surround = {
+            mappings = {
+              add = "gsa";
+              delete = "gsd";
+              find = "gsf";
+              find_left = "gsF";
+              highlight = "gsh";
+              replace = "gsr";
+              update_n_lines = "gsn";
+            };
+          };
         };
       };
       noice = {
@@ -125,30 +89,28 @@
           };
         };
       };
-
-      mini = {
+      notify = {
         enable = true;
-        modules = {
-          # tabline = { enable = true; };
-          pairs = {
-            enable = true;
-            # modes = {
-            #   insert = true;
-            #   command = false;
-            #   terminal = false;
-            # };
-          };
-          surround = {
-            mappings = {
-              add = "gsa";
-              delete = "gsd";
-              find = "gsf";
-              find_left = "gsF";
-              highlight = "gsh";
-              replace = "gsr";
-              update_n_lines = "gsn";
-            };
-          };
+        # remove animations for performance
+        settings = {
+          stages = "static";
+          timeout = 5000;
+        };
+      };
+      tmux-navigator = {
+        enable = true;
+        autoLoad = true;
+        settings = { disable_when_zoomed = 1; };
+      };
+      trouble = { enable = true; };
+      which-key = { enable = true; };
+      web-devicons = {
+        enable = true;
+        autoLoad = true;
+        settings = {
+          color_icons = true;
+          variant = "dark";
+          strict = true;
         };
       };
     };

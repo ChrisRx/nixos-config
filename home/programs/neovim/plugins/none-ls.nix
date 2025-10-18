@@ -37,16 +37,3 @@
     };
   };
 }
-# "gofumpt",
-# "goimports",
-# "goimports-reviser",
-# "golines",
-# "gopls",
-# "rust-analyzer",
-# "golangci-lint",
-# "golangci-lint-langserver",
-# "lua-language-server",
-# "templ",
-# "html-lsp",
-# -- "htmx-lsp",
-# "tailwindcss-language-server",

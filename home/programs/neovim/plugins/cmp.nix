@@ -10,11 +10,6 @@
         enable = true;
 
         settings = {
-          # snippet.expand = ''
-          #   function(args)
-          #     require('luasnip').lsp_expand(args.body)
-          #   end
-          # '';
           snippet = { expand = "luasnip"; };
           sources = [
             { name = "nvim_lsp"; }

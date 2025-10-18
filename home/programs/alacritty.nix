@@ -1,14 +1,7 @@
-{ config, pkgs, ... }: {
-  home.file = {
-    # ".config/alacritty/catppuccin_macchiato.yaml".source = ../files/catppuccin_macchiato.yaml;
-  };
-
+{ ... }: {
   programs.alacritty = {
     enable = true;
     settings = {
-      general.import = [
-        # "~/.config/alacritty/themes/catpuccin_mocha.yaml"
-      ];
       env.term = "xterm-256color";
       window = {
         opacity = 0.85;
@@ -29,11 +22,6 @@
         };
       };
       colors = {
-        # #303030
-        # #8090fb
-        # #503080
-        # primary.background = "0x282C34";
-        # primary.background = "0x303030";
         primary.background = "0x101010";
         cursor = {
           text = "0x212121";

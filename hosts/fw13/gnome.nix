@@ -1,6 +1,5 @@
 # TODO: put in module
-{ config, pkgs, ... }:
-{
+{ pkgs, ... }: {
   services = {
     xserver = {
       enable = true;
