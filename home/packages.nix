@@ -139,5 +139,7 @@
     cmake
     jq
     dust
+
+    renderdoc
   ];
 }

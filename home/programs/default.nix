@@ -6,7 +6,10 @@
       enable = true;
       enableZshIntegration = true;
       nix-direnv.enable = true;
-      config = { whitelist = { prefix = [ "~/src/ChrisRx" ]; }; };
+      config = {
+        whitelist = { prefix = [ "~/src/ChrisRx" ]; };
+        hide_env_diff = true;
+      };
     };
 
     ripgrep = {

@@ -9,17 +9,7 @@
     enable = true;
 
     autosuggestion = { enable = true; };
-
-    enableCompletion = true;
-    completionInit = ''
-      autoload -U compinit
-      zstyle ':completion:*' menu select
-      zmodload zsh/complist
-      compinit
-
-      # Include hidden files in autocomplete:
-      _comp_options+=(globdots)
-    '';
+    syntaxHighlighting = { enable = true; };
 
     oh-my-zsh = {
       enable = true;
@@ -35,8 +25,18 @@
         "gcloud"
       ];
     };
-    syntaxHighlighting = { enable = true; };
-    sessionVariables = { SOMETHING = "OMG"; };
+
+    enableCompletion = true;
+    completionInit = ''
+      autoload -U compinit
+      zstyle ':completion:*' menu select
+      zmodload zsh/complist
+      compinit
+
+      # Include hidden files in autocomplete:
+      _comp_options+=(globdots)
+    '';
+
     initContent = ''
       source $HOME/.zshrc.extra
     '';

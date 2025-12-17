@@ -1,4 +1,4 @@
-{ pkgs, ... }: {
+{ lib, pkgs, ... }: {
   programs.nixvim = {
     extraPackages = with pkgs; [
       gopls
@@ -35,7 +35,17 @@
           templ = { enable = true; };
           html = { enable = true; };
           tailwindcss = { enable = true; };
-          nixd = { enable = true; };
+          nixd = {
+            enable = true;
+            settings = {
+              # does this even work?
+              nixpkgs.expr = lib.mkDefault "import <nixpkgs> { }";
+              # options.nixvim.expr =
+              #   "(builtins.getFlake ../../../../. ).packages.${pkgs.system}.neovimNixvim.options";
+              # options.nixvim.expr =
+              #   "(builtins.getFlake(toString ./.)).packages.${pkgs.system}.default.options";
+            };
+          };
         };
       };
       rustaceanvim = {

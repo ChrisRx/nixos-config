@@ -1,11 +1,9 @@
-{ config, pkgs, ... }: {
+{ pkgs, ... }: {
   programs.tmux = {
     enable = true;
     shell = "${pkgs.zsh}/bin/zsh";
     sensibleOnTop = true;
     extraConfig = ''
-      # source $HOME/.tmux.conf.extra
-      # set -g default-shell ''${pkgs.zsh}/bin/zsh
       # ==================== Settings ====================
 
       set -g default-terminal "xterm-256color"
@@ -57,8 +55,6 @@
       set -g message-style fg=colour232,bg=colour166,bold
       set -g message-command-style fg=blue,bg=black,bold
       set -g mode-style fg=colour196,bg=colour238,bold
-      #set -g pane-active-border-style fg=colour51,bg=colour236
-      #set -g pane-border-style fg=colour238,bg=colour235
       set -g status-style fg=colour137,bg=colour234,dim
       set -g window-status-style fg=colour138,bg=colour235,none
       set -g window-status-bell-style fg=colour255,bg=colour1,bold

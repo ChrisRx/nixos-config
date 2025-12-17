@@ -24,6 +24,5 @@
       url = { "https://" = { insteadOf = "git://"; }; };
       init = { defaultBranch = "main"; };
     };
-
   };
 }

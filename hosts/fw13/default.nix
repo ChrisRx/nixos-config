@@ -29,6 +29,7 @@
     };
     kernelPackages = pkgs.linuxPackages_latest;
   };
+  boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
