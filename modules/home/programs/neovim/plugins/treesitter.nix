@@ -1,19 +1,5 @@
 { pkgs, ... }: {
   programs.nixvim = {
-    keymaps = [
-      {
-        mode = [ "n" ];
-        key = "<leader>f";
-        action = "<cmd>NvimTreeFindFile<cr>";
-        options = { nowait = true; };
-      }
-      {
-        mode = [ "n" ];
-        key = "<C-n>";
-        action = "<cmd>NvimTreeToggle<cr>";
-        options = { nowait = true; };
-      }
-    ];
     plugins.treesitter = {
       enable = true;
       nixGrammars = true;
@@ -23,7 +9,9 @@
           use_languagetree = true;
         };
         indent.enable = true;
+        auto_install = false;
       };
+
       grammarPackages = with pkgs.vimPlugins.nvim-treesitter.builtGrammars; [
         bash
         c
@@ -44,7 +32,7 @@
         make
         markdown
         nginx
-        nix
+        #nix
         proto
         python
         regex

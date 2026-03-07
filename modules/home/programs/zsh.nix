@@ -1,15 +1,22 @@
-{ ... }: {
+{ ... }:
+{
   home.sessionVariables = {
-    HISTSIZE = 10000;
-    SAVEHIST = 10000;
+    HISTSIZE = 100000;
+    SAVEHIST = 100000;
   };
   home.shell.enableZshIntegration = true;
-  home.file = { ".zshrc.extra".source = ../files/zshrc.extra; };
+  home.file = {
+    ".zshrc.extra".source = ../files/zshrc.extra;
+  };
   programs.zsh = {
     enable = true;
 
-    autosuggestion = { enable = true; };
-    syntaxHighlighting = { enable = true; };
+    autosuggestion = {
+      enable = true;
+    };
+    syntaxHighlighting = {
+      enable = true;
+    };
 
     oh-my-zsh = {
       enable = true;

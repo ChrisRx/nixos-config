@@ -45,7 +45,7 @@ zstyle :bracketed-paste-magic paste-finish pastefinish
 
 
 # Disable ctrl-s and ctrl-q.
-stty -ixon 
+stty -ixon
 
 # Aliases
 alias ll='ls -alhF --group-directories-first'

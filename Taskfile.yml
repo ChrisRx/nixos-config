@@ -4,7 +4,7 @@ tasks:
   update:
     cmds:
       - sudo nix flake update -v
-      - sudo nixos-rebuild switch --upgrade --impure --flake . -v
+      - sudo nixos-rebuild switch --upgrade --impure --flake .#$(hostname) -v
 
   clean:
     cmds:

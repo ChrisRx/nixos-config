@@ -1,13 +1,10 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+{
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+
   programs.firefox.enable = true;
   programs.zsh.enable = true;
-
-  # steam
-  programs.steam.enable = true;
-  hardware.steam-hardware.enable = true;
-  environment.systemPackages = [ pkgs.steam-devices-udev-rules ];
-  # hardware.xpadneo.enable =
-  #   true; # necessary? need to test that bt with steam still works
 
   programs.nix-ld.enable = true;
   programs.nix-ld.libraries = with pkgs; [

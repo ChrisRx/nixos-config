@@ -1,4 +1,5 @@
-{ lib, pkgs, ... }: {
+{ lib, pkgs, ... }:
+{
   programs.nixvim = {
     extraPackages = with pkgs; [
       gopls
@@ -9,6 +10,7 @@
       lua-language-server
       templ
       htmx-lsp
+      tree-sitter
     ];
     plugins = {
       lsp = {
@@ -32,14 +34,20 @@
             enable = true;
             package = null; # default pkgs.gopls
           };
-          templ = { enable = true; };
-          html = { enable = true; };
-          tailwindcss = { enable = true; };
+          templ = {
+            enable = true;
+          };
+          html = {
+            enable = true;
+          };
+          tailwindcss = {
+            enable = true;
+          };
           nixd = {
             enable = true;
             settings = {
               # does this even work?
-              nixpkgs.expr = lib.mkDefault "import <nixpkgs> { }";
+              # nixpkgs.expr = lib.mkDefault "import <nixpkgs> { }";
               # options.nixvim.expr =
               #   "(builtins.getFlake ../../../../. ).packages.${pkgs.system}.neovimNixvim.options";
               # options.nixvim.expr =
