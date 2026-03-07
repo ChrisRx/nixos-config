@@ -18,17 +18,11 @@
   imports = [ inputs.home-manager.nixosModules.home-manager ];
   home-manager = {
     useUserPackages = true;
-    useGlobalPkgs = true; # XXX: ???
+    useGlobalPkgs = true;
     extraSpecialArgs = { inherit inputs username host; };
     sharedModules = [ inputs.nixvim.homeModules.nixvim ];
     users.${username} = {
       imports = [ ../../home ];
-      nixpkgs = {
-        config = {
-          allowUnfree = true;
-          allowUnfreePredicate = (_: true);
-        };
-      };
 
       # fix gdctl not in PATH
       home.sessionPath = [ "${pkgs.mutter.outPath}/bin" ];

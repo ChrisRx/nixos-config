@@ -1,5 +1,9 @@
 { pkgs, ... }: {
   programs.nixvim = {
+    extraConfigLuaPre = ''
+      vim.cmd([[autocmd FileType templ setlocal noexpandtab commentstring=//\ %s]])
+    '';
+
     plugins.treesitter = {
       enable = true;
       nixGrammars = true;
@@ -15,6 +19,7 @@
       grammarPackages = with pkgs.vimPlugins.nvim-treesitter.builtGrammars; [
         bash
         c
+        cpp
         css
         git_config
         gitcommit
@@ -38,6 +43,7 @@
         regex
         rust
         scala
+        sql
         templ
         terraform
         tmux

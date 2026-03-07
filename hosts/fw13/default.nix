@@ -11,19 +11,19 @@
 
   hardware.bluetooth.enable = true;
 
-  home-manager.users.${username}.packages.extra.enable = true;
-  home-manager.users.${username}.packages.experimental.enable = true;
-  home-manager.users.${username}.packages.fonts.enable = true;
+  home-manager.users.${username}.packages = {
+    extra.enable = true;
+    experimental.enable = true;
+    fonts.enable = true;
+  };
 
   networking.hostName = "fw13";
 
   services.fwupd.enable = true;
   services.hardware.bolt.enable = true;
-
-  # XXX:
-  services.xserver.enable = true;
-
-  services.logind = { lidSwitch = "suspend-then-hibernate"; };
+  services.logind.settings = {
+    Login = { HandleLidSwitch = "suspend-then-hibernate"; };
+  };
   systemd.sleep.extraConfig = ''
     HibernateDelaySec=7200
     AllowHibernation=yes
@@ -32,7 +32,7 @@
 
   system.autoUpgrade.enable = true;
   system.autoUpgrade.allowReboot = true;
-  system.autoUpgrade.channel = "https://nixos.org/channels/nixos-25.05";
+  system.autoUpgrade.channel = "https://nixos.org/channels/nixos-25.11";
 
   users.users.${username}.extraGroups = [ "docker" ];
 
