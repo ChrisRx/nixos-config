@@ -21,6 +21,7 @@
 
     plugins.nvim-tree = {
       enable = true;
+      openOnSetup = true;
 
       settings = {
         auto_reload_on_write = true;
@@ -46,7 +47,6 @@
             };
           };
         };
-        open_on_setup_file = true;
         sync_root_with_cwd = true;
         update_focused_file = {
           enable = true;

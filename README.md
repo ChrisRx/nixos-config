@@ -7,7 +7,7 @@ This repo is my personal NixOS configurations. It is based heavily on Frost-Phoe
 Upgrade packages and rebuild OS (includes home-manager):
 
 ```shell
-task update
+task upgrade
 ```
 
 The output of `$(hostname)` is used to pass in which host should be built.

@@ -8,13 +8,6 @@
 
   nix.settings.allowed-users = [ "${username}" ];
 
-  # TODO: doesn't work anymore in wayland
-  services.xserver.xkb = {
-    layout = "us";
-    variant = "";
-    options = "caps:ctrl_modifier";
-  };
-
   imports = [ inputs.home-manager.nixosModules.home-manager ];
   home-manager = {
     useUserPackages = true;
@@ -25,7 +18,7 @@
       imports = [ ../../home ];
 
       # fix gdctl not in PATH
-      home.sessionPath = [ "${pkgs.mutter.outPath}/bin" ];
+      # home.sessionPath = [ "${pkgs.mutter.outPath}/bin" ];
       home.sessionVariables = {
         # HISTSIZE = 100000;
         # SAVEHIST = 100000;

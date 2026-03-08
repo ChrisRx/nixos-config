@@ -1,18 +1,38 @@
 version: '3'
 
+vars:
+  HOSTNAME:
+    sh: hostname
+  ARGS: "--sudo --upgrade --impure --flake .#{{ .HOSTNAME }}"
+  VERBOSE:
+    sh: '[[ "$LOG_LEVEL" == "debug" ]] && echo "-v" || true'
+
 tasks:
+  build:
+    cmds:
+      - nixos-rebuild build {{ .ARGS }} {{ .VERBOSE }} {{ .CLI_ARGS }}
+
+  build:test:
+    cmds:
+      - nixos-rebuild dry-build {{ .ARGS }} -v {{ .CLI_ARGS }}
+
   update:
     cmds:
-      - sudo nix flake update -v
-      - sudo nixos-rebuild switch --upgrade --impure --flake .#$(hostname) -v
+      - sudo nix flake update {{ .VERBOSE }}
+
+  upgrade:
+    deps:
+      - update
+    cmds:
+      - nixos-rebuild switch {{ .ARGS }} {{ .VERBOSE }} {{ .CLI_ARGS }}
 
   clean:
     cmds:
       - nix-collect-garbage
       - nix-collect-garbage -d
-      # - nix-store --optimize
+      - nix-store --optimize
       - sudo nix-collect-garbage -d
-      - sudo nixos-rebuild switch --upgrade --impure --flake . -v
+      - task: upgrade
 
   firmware:update:
     cmds:

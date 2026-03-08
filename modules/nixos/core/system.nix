@@ -1,5 +1,4 @@
-{ pkgs, ... }:
-{
+{ pkgs, ... }: {
   nix = {
     gc = {
       automatic = true;
@@ -8,23 +7,19 @@
     };
     optimise.automatic = true;
     settings = {
-      experimental-features = [
-        "nix-command"
-        "flakes"
-      ];
+      experimental-features = [ "nix-command" "flakes" ];
+      warn-dirty = false;
     };
   };
 
   environment.systemPackages = with pkgs; [
     alacritty
     kitty
-    git
-    vim
+
     gcc
     pkg-config
     clang
     llvm
-    tmux
 
     alsa-lib
     udev
@@ -32,20 +27,21 @@
     vulkan-loader
     vulkan-tools
 
-    curl
-    wget
     usbutils
+    cifs-utils
+    dnsutils
+    inetutils
+
+    tmux
     rustup
 
-    cifs-utils
-    vlc
-    inetutils
+    git
+    vim
+    wget
+    curl
     htop
-
-    systemd
-    udev
-    # file
-    # lsof
+    file
+    lsof
   ];
 
   fonts.packages = with pkgs; [
@@ -55,9 +51,6 @@
     liberation_ttf
     fira-code
     fira-code-symbols
-    mplus-outline-fonts.githubRelease
-    dina-font
-    proggyfonts
   ];
 
   # Set your time zone.
@@ -78,6 +71,9 @@
     LC_TIME = "en_US.UTF-8";
   };
 
+  # Update firmware
+  services.fwupd.enable = true;
+
   # who be printing?
   services.printing.enable = false;
 
@@ -90,4 +86,7 @@
     alsa.support32Bit = true;
     pulse.enable = true;
   };
+
+  system.autoUpgrade.enable = true;
+  system.autoUpgrade.allowReboot = true;
 }
