@@ -3,7 +3,7 @@ version: '3'
 vars:
   HOSTNAME:
     sh: hostname
-  ARGS: "--sudo --upgrade --impure --flake .#{{ .HOSTNAME }}"
+  ARGS: "--sudo --upgrade --flake .#{{ .HOSTNAME }}"
   VERBOSE:
     sh: '[[ "$LOG_LEVEL" == "debug" ]] && echo "-v" || true'
 

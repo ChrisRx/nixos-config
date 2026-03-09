@@ -4,8 +4,9 @@
     ../../modules/nixos/core
     ../../modules/nixos/gnome
     ../../modules/nixos/steam
-    <nixos-hardware/framework/13-inch/amd-ai-300-series>
   ];
+
+  core.user.extraGroups = [ "docker" ];
 
   networking.hostName = "fw13";
   hardware.bluetooth.enable = true;
@@ -24,7 +25,6 @@
     experimental.enable = true;
     fonts.enable = true;
   };
-  users.users.${username}.extraGroups = [ "docker" ];
 
   # Enable cross-compilation builds
   boot.binfmt.emulatedSystems = [ "aarch64-linux" ];

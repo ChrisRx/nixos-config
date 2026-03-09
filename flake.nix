@@ -11,15 +11,14 @@
       url = "github:nix-community/nixvim/nixos-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
   };
 
-  outputs =
-    { nixpkgs, self, ... }@inputs:
+  outputs = { nixpkgs, nixos-hardware, self, ... }@inputs:
     let
       username = "chris";
       system = "x86_64-linux";
-    in
-    {
+    in {
       nixosConfigurations = {
         htpc = nixpkgs.lib.nixosSystem {
           inherit system;
@@ -33,7 +32,10 @@
       nixosConfigurations = {
         fw13 = nixpkgs.lib.nixosSystem {
           inherit system;
-          modules = [ ./hosts/fw13 ];
+          modules = [
+            ./hosts/fw13
+            nixos-hardware.nixosModules.framework-amd-ai-300-series
+          ];
           specialArgs = {
             host = "fw13";
             inherit self inputs username;

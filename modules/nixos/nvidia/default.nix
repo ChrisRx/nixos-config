@@ -22,7 +22,6 @@ in {
       nvidiaSettings = true;
       modesetting.enable = true;
       powerManagement.enable = true;
-
     };
 
     # Apply CachyOS kernel 6.19 patch to NVIDIA latest driver (optional)
