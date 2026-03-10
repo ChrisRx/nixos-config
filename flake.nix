@@ -19,6 +19,13 @@
       username = "chris";
       system = "x86_64-linux";
     in {
+      nixosModules = {
+        core = import ./modules/nixos/core;
+        nvidia = import ./modules/nixos/nvidia;
+      };
+
+      homeModules = { neovim = import ./modules/home/programs/neovim; };
+
       nixosConfigurations = {
         htpc = nixpkgs.lib.nixosSystem {
           inherit system;
