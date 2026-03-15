@@ -4,19 +4,19 @@ let cfg = config.packages;
 in {
   imports = [ ./programs ];
 
-  options.packages = builtins.listToAttrs (builtins.map (name: {
-    inherit name;
-    value = { enable = lib.mkEnableOption "Enable ${name} packages"; };
-  }) [
-    # categories
-    "all"
-    "cloud"
-    "development"
-    "experimental"
-    "extra"
-    "fonts"
-    "utils"
-  ]);
+  options.packages = builtins.listToAttrs (builtins.map (name:
+    lib.nameValuePair "${name}" {
+      enable = lib.mkEnableOption "Enable ${name} packages";
+    }) [
+      # categories
+      "all"
+      "cloud"
+      "development"
+      "experimental"
+      "extra"
+      "fonts"
+      "utils"
+    ]);
 
   config = {
     home.packages = with pkgs;
@@ -27,7 +27,7 @@ in {
         nerd-fonts.fira-code
         nerd-fonts.fira-mono
         nix-prefetch-scripts
-      ] ++ lib.lists.optionals cfg.development.enable or cfg.all.enable [
+      ] ++ lib.lists.optionals (cfg.development.enable || cfg.all.enable) [
         protobuf
 
         go
@@ -51,13 +51,13 @@ in {
 
         sqlite
         duckdb
-      ] ++ lib.lists.optionals cfg.cloud.enable or cfg.all.enable [
+      ] ++ lib.lists.optionals (cfg.cloud.enable || cfg.all.enable) [
         (google-cloud-sdk.withExtraComponents
           [ google-cloud-sdk.components.gke-gcloud-auth-plugin ])
         awscli2
         azure-cli
         terraform
-      ] ++ lib.lists.optionals cfg.utils.enable or cfg.all.enable [
+      ] ++ lib.lists.optionals (cfg.utils.enable || cfg.all.enable) [
         powertop
         entr
         htop
@@ -66,13 +66,13 @@ in {
         unzip
         dust
         jq
-      ] ++ lib.lists.optionals cfg.extra.enable or cfg.all.enable [
+      ] ++ lib.lists.optionals (cfg.extra.enable || cfg.all.enable) [
         google-chrome
         vlc
         gimp
         audacity
         discord
-      ] ++ lib.lists.optionals cfg.experimental.enable or cfg.all.enable [
+      ] ++ lib.lists.optionals (cfg.experimental.enable || cfg.all.enable) [
         nodejs
         minio
         minio-client
@@ -82,7 +82,7 @@ in {
         nixfmt-rfc-style
         html-tidy
         sops
-      ] ++ lib.lists.optionals cfg.fonts.enable or cfg.all.enable [
+      ] ++ lib.lists.optionals (cfg.fonts.enable || cfg.all.enable) [
         nerd-fonts."m+"
         nerd-fonts._0xproto
         nerd-fonts._3270

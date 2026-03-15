@@ -14,10 +14,22 @@ in {
     };
     packages =
       (import ../../home { inherit pkgs config lib; }).options.packages;
+
+    extraPackages = lib.mkOption {
+      type = lib.types.listOf lib.types.package;
+      default = [ ];
+      example = lib.literalExpression "[ pkgs.git ]";
+      description = ''
+        Additional home-manager packages to be included.
+      '';
+    };
   };
 
   config = {
     users.users.${username}.extraGroups = cfg.user.extraGroups;
-    home-manager.users.${username}.packages = cfg.packages;
+    home-manager.users.${username} = {
+      packages = cfg.packages;
+      home.packages = cfg.extraPackages;
+    };
   };
 }
