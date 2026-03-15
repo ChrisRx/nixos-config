@@ -4,99 +4,85 @@ let cfg = config.packages;
 in {
   imports = [ ./programs ];
 
-  options.packages = {
-    extra = { enable = lib.mkEnableOption "Enable extra packages"; };
-    experimental = {
-      enable = lib.mkEnableOption "Enable experimental packages";
-    };
-    fonts = { enable = lib.mkEnableOption "Enable font packages"; };
-  };
+  options.packages = builtins.listToAttrs (builtins.map (name: {
+    inherit name;
+    value = { enable = lib.mkEnableOption "Enable ${name} packages"; };
+  }) [
+    # categories
+    "all"
+    "cloud"
+    "development"
+    "experimental"
+    "extra"
+    "fonts"
+    "utils"
+  ]);
 
   config = {
     home.packages = with pkgs;
       [
-        discord
-        dust
+        fastfetch
+        git
+        go-task
         nerd-fonts.fira-code
         nerd-fonts.fira-mono
-        neofetch
-
-        go
-        golangci-lint
-        gotools
-        go-tools
-        go-task
-      ] ++ lib.lists.optionals cfg.extra.enable [
-        # General
-        sops
-        vlc
         nix-prefetch-scripts
-        mdbook
-        slides
-        neofetch
-        glow
-        entr
-        htop
-        dig
-        gnumake
-        unzip
-        gimp
-        audacity
-        powertop
+      ] ++ lib.lists.optionals cfg.development.enable or cfg.all.enable [
+        protobuf
 
-        # Go
         go
         golangci-lint
         gotools
         go-tools
-        go-task
-
-        # Protobufs
-        protobuf
         protoc-gen-go
         protoc-gen-go-grpc
 
-        # Cloud
+        rustup
+
+        mdbook
+        slides
+        glow
+
+        kubernetes-helm
+        kind
+        kubectl
+        tilt
+        cmake
+
+        sqlite
+        duckdb
+      ] ++ lib.lists.optionals cfg.cloud.enable or cfg.all.enable [
         (google-cloud-sdk.withExtraComponents
           [ google-cloud-sdk.components.gke-gcloud-auth-plugin ])
         awscli2
         azure-cli
         terraform
-
-        # Kubernetes
-        kubernetes-helm
-        kind
-        kubectl
-        tilt
-        discord
-        # discord-canary
-        rustup
-        google-chrome
-
-        wayland
-
-        # install with flatpak maybe?
-        # python3Minimal
-        # pipx
-        fzf
-
-        html-tidy
-        templ
-        nixd
-        nixfmt-rfc-style
-
-        sqlite
-        duckdb
-        cmake
-        jq
+      ] ++ lib.lists.optionals cfg.utils.enable or cfg.all.enable [
+        powertop
+        entr
+        htop
+        dig
+        gnumake
+        unzip
         dust
-      ] ++ lib.lists.optionals cfg.experimental.enable [
+        jq
+      ] ++ lib.lists.optionals cfg.extra.enable or cfg.all.enable [
+        google-chrome
+        vlc
+        gimp
+        audacity
+        discord
+      ] ++ lib.lists.optionals cfg.experimental.enable or cfg.all.enable [
         nodejs
         minio
         minio-client
         renderdoc
-      ] ++ lib.lists.optionals cfg.fonts.enable [
-        # nerdfonts
+        wayland
+        fzf
+        nixfmt-rfc-style
+        html-tidy
+        sops
+      ] ++ lib.lists.optionals cfg.fonts.enable or cfg.all.enable [
         nerd-fonts."m+"
         nerd-fonts._0xproto
         nerd-fonts._3270

@@ -6,6 +6,7 @@
     ../../modules/nixos/steam
   ];
 
+  core.packages.all.enable = true;
   core.user.extraGroups = [ "docker" ];
 
   networking.hostName = "fw13";
@@ -19,12 +20,6 @@
     AllowHibernation=yes
     AllowSuspendThenHibernate=yes
   '';
-
-  home-manager.users.${username}.packages = {
-    extra.enable = true;
-    experimental.enable = true;
-    fonts.enable = true;
-  };
 
   # Enable cross-compilation builds
   boot.binfmt.emulatedSystems = [ "aarch64-linux" ];

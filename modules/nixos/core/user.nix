@@ -17,11 +17,9 @@
     users.${username} = {
       imports = [ ../../home ];
 
-      # fix gdctl not in PATH
-      # home.sessionPath = [ "${pkgs.mutter.outPath}/bin" ];
       home.sessionVariables = {
-        # HISTSIZE = 100000;
-        # SAVEHIST = 100000;
+        HISTSIZE = 100000;
+        SAVEHIST = 100000;
       };
       home.username = "${username}";
       home.homeDirectory = "/home/${username}";

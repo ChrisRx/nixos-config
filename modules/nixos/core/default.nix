@@ -1,4 +1,4 @@
-{ config, lib, username, ... }:
+{ config, pkgs, lib, username, ... }:
 
 let cfg = config.core;
 in {
@@ -8,10 +8,16 @@ in {
     user = {
       extraGroups = lib.mkOption {
         type = lib.types.listOf lib.types.str;
+        default = [ ];
         description = "";
       };
     };
+    packages =
+      (import ../../home { inherit pkgs config lib; }).options.packages;
   };
 
-  config = { users.users.${username}.extraGroups = cfg.user.extraGroups; };
+  config = {
+    users.users.${username}.extraGroups = cfg.user.extraGroups;
+    home-manager.users.${username}.packages = cfg.packages;
+  };
 }
