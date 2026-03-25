@@ -29,7 +29,7 @@
             gofmt.enable = true;
             goimports.enable = true;
             nixfmt.enable = true;
-            shellharden.enable = true;
+            shellharden.enable = false;
             shfmt.enable = true;
           };
         };

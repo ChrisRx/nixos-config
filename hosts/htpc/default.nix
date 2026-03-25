@@ -1,23 +1,19 @@
 { username, lib, ... }: {
-  imports = [
-    ./hardware-configuration.nix
-    ./../../modules/nixos/core
-    ./../../modules/nixos/gnome
-    ./../../modules/nixos/nvidia
-    ./../../modules/nixos/steam
-  ];
+  imports = [ ./hardware-configuration.nix ./../../modules/nixos/core ];
 
   core.packages = {
     development.enable = true;
     extra.enable = true;
     utils.enable = true;
   };
-
+  gnome.enable = true;
   networking.hostName = "htpc";
-
-  nvidia.enable = true;
-  nvidia.powerLimit = 250;
-  nvidia.usePatchedPackage = true;
+  nvidia = {
+    enable = true;
+    powerLimit = 250;
+    usePatchedPackage = true;
+  };
+  steam.enable = true;
 
   systemd = {
     targets.sleep.enable = false;

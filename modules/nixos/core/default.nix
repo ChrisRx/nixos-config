@@ -2,8 +2,16 @@
 
 let cfg = config.core;
 in {
-  imports =
-    [ ./boot.nix ./networking.nix ./programs.nix ./system.nix ./user.nix ];
+  imports = [
+    ./boot.nix
+    ./networking.nix
+    ./programs.nix
+    ./system.nix
+    ./user.nix
+    ../gnome
+    ../nvidia
+    ../steam
+  ];
   options.core = {
     user = {
       extraGroups = lib.mkOption {

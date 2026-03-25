@@ -14,6 +14,7 @@ in {
       description = "Limit gpu power usage (watts)";
     };
   };
+
   config = lib.mkIf cfg.enable {
     hardware.graphics.enable = true;
     services.xserver.videoDrivers = [ "nvidia" ];

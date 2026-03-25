@@ -1,15 +1,12 @@
 { ... }: {
-  imports = [
-    ./hardware-configuration.nix
-    ../../modules/nixos/core
-    ../../modules/nixos/gnome
-    ../../modules/nixos/steam
-  ];
+  imports = [ ./hardware-configuration.nix ../../modules/nixos/core ];
 
   core.packages.all.enable = true;
   core.user.extraGroups = [ "docker" ];
-
+  gnome.enable = true;
   networking.hostName = "fw13";
+  steam.enable = true;
+
   hardware.bluetooth.enable = true;
   services.hardware.bolt.enable = true;
   services.logind.settings = {
