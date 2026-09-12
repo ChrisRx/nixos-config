@@ -13,10 +13,9 @@
     useUserPackages = true;
     useGlobalPkgs = true;
     extraSpecialArgs = { inherit inputs username host; };
-    sharedModules = [ inputs.nixvim.homeModules.nixvim ];
-    users.${username} = {
-      imports = [ ../../home ];
 
+    users.${username} = {
+      imports = [ inputs.self.homeModules.default ];
       home.sessionVariables = {
         HISTSIZE = 100000;
         SAVEHIST = 100000;

@@ -3,7 +3,7 @@
     gc = {
       automatic = true;
       dates = "weekly";
-      options = "--delete-older-than 30d";
+      options = "--delete-older-than 60d";
     };
     optimise.automatic = true;
     settings = {

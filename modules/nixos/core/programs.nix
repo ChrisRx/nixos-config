@@ -1,4 +1,5 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+{
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
@@ -17,15 +18,16 @@
     libssh
     libxkbcommon
     libxml2
+    libcap_ng
     openssl
     stdenv.cc.cc
     stdenv.cc.cc.lib
     systemd
     util-linux
-    xorg.libX11
-    xorg.libXcursor
-    xorg.libXi
-    xorg.libxcb
+    libx11
+    libxcursor
+    libxi
+    libxcb
     xz
     zlib
     zstd

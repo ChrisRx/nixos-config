@@ -1,25 +1,42 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  # Supplied by homeModules.default; falls back to pkgs when this module is
+  # imported bare, as core/default.nix does to read out options.packages.
+  unstable ? pkgs,
+  ...
+}:
 
-let cfg = config.packages;
-in {
+let
+  cfg = config.packages;
+in
+{
   imports = [ ./programs ];
 
-  options.packages = builtins.listToAttrs (builtins.map (name:
-    lib.nameValuePair "${name}" {
-      enable = lib.mkEnableOption "Enable ${name} packages";
-    }) [
-      # categories
-      "all"
-      "cloud"
-      "development"
-      "experimental"
-      "extra"
-      "fonts"
-      "utils"
-    ]);
+  options.packages = builtins.listToAttrs (
+    map
+      (
+        name:
+        lib.nameValuePair "${name}" {
+          enable = lib.mkEnableOption "Enable ${name} packages";
+        }
+      )
+      [
+        # categories
+        "all"
+        "cloud"
+        "development"
+        "experimental"
+        "extra"
+        "fonts"
+        "utils"
+      ]
+  );
 
   config = {
-    home.packages = with pkgs;
+    home.packages =
+      with pkgs;
       [
         fastfetch
         git
@@ -27,21 +44,24 @@ in {
         nerd-fonts.fira-code
         nerd-fonts.fira-mono
         nix-prefetch-scripts
-      ] ++ lib.lists.optionals (cfg.development.enable || cfg.all.enable) [
+      ]
+      ++ lib.lists.optionals (cfg.development.enable || cfg.all.enable) [
         protobuf
 
-        go
-        golangci-lint
+        unstable.go
+        unstable.golangci-lint
         gotools
         go-tools
         protoc-gen-go
         protoc-gen-go-grpc
+        unstable.claude-code
 
         rustup
 
         mdbook
         slides
         glow
+        vhs
 
         kubernetes-helm
         kind
@@ -51,38 +71,45 @@ in {
 
         sqlite
         duckdb
-      ] ++ lib.lists.optionals (cfg.cloud.enable || cfg.all.enable) [
-        (google-cloud-sdk.withExtraComponents
-          [ google-cloud-sdk.components.gke-gcloud-auth-plugin ])
+      ]
+      ++ lib.lists.optionals (cfg.cloud.enable || cfg.all.enable) [
+        (google-cloud-sdk.withExtraComponents [ google-cloud-sdk.components.gke-gcloud-auth-plugin ])
         awscli2
         azure-cli
         terraform
-      ] ++ lib.lists.optionals (cfg.utils.enable || cfg.all.enable) [
+      ]
+      ++ lib.lists.optionals (cfg.utils.enable || cfg.all.enable) [
         powertop
         entr
         htop
+        btop
         dig
         gnumake
         unzip
         dust
         jq
-      ] ++ lib.lists.optionals (cfg.extra.enable || cfg.all.enable) [
+        bat
+      ]
+      ++ lib.lists.optionals (cfg.extra.enable || cfg.all.enable) [
         google-chrome
         vlc
         gimp
         audacity
         discord
-      ] ++ lib.lists.optionals (cfg.experimental.enable || cfg.all.enable) [
+      ]
+      ++ lib.lists.optionals (cfg.experimental.enable || cfg.all.enable) [
         nodejs
-        minio
-        minio-client
+        # minio
+        # minio-client
         renderdoc
         wayland
         fzf
-        nixfmt-rfc-style
+        nixfmt
         html-tidy
         sops
-      ] ++ lib.lists.optionals (cfg.fonts.enable || cfg.all.enable) [
+        jujutsu
+      ]
+      ++ lib.lists.optionals (cfg.fonts.enable || cfg.all.enable) [
         nerd-fonts."m+"
         nerd-fonts._0xproto
         nerd-fonts._3270

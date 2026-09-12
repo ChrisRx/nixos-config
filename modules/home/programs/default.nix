@@ -1,5 +1,11 @@
-{ ... }: {
-  imports = [ ./alacritty.nix ./git.nix ./neovim ./tmux.nix ./zsh.nix ];
+{ ... }:
+{
+  imports = [
+    ./alacritty.nix
+    ./git.nix
+    ./tmux.nix
+    ./zsh.nix
+  ];
 
   programs = {
     direnv = {
@@ -7,7 +13,9 @@
       enableZshIntegration = true;
       nix-direnv.enable = true;
       config = {
-        whitelist = { prefix = [ "~/src/ChrisRx" ]; };
+        whitelist = {
+          prefix = [ "~/src/ChrisRx" ];
+        };
         hide_env_diff = true;
       };
     };
@@ -40,7 +48,10 @@
       git = true;
       enableZshIntegration = true;
       icons = "auto";
-      extraOptions = [ "--group-directories-first" "--header" ];
+      extraOptions = [
+        "--group-directories-first"
+        "--header"
+      ];
     };
 
     starship = {
@@ -54,13 +65,16 @@
           unknown_msg = "[unknown shell](bold yellow)";
           format = "via [❄️ $state( ($name))](bold blue) ";
         };
-        golang = { symbol = " "; };
+        golang = {
+          symbol = " ";
+        };
       };
     };
 
     yazi = {
       enable = true;
       enableZshIntegration = true;
+      shellWrapperName = "y";
       settings = {
         preview = {
           image_quality = 90;

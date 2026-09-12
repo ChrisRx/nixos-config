@@ -5,10 +5,13 @@
   programs.git = {
     enable = true;
 
-    ignores = [ "_taynes" ];
+    ignores = [
+      "_taynes"
+      ".claude"
+    ];
 
     settings = {
-      aliases = {
+      alias = {
         "af" = "!git fetch origin && git rebase origin/main --autostash";
       };
       pull = {
