@@ -24,6 +24,7 @@
       };
       servers = {
         bashls.enable = true;
+        buf_ls.enable = true;
         clangd.enable = true;
         lua_ls = {
           enable = true;
@@ -32,6 +33,9 @@
         gopls = {
           enable = true;
           package = null; # default pkgs.gopls
+          settings = {
+            "ui.diagnostics.vulncheck" = "Off";
+          };
         };
         templ = {
           enable = true;

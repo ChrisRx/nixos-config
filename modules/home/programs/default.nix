@@ -1,4 +1,8 @@
-{ ... }:
+{
+  pkgs,
+  unstable ? pkgs,
+  ...
+}:
 {
   imports = [
     ./alacritty.nix
@@ -17,6 +21,63 @@
           prefix = [ "~/src/ChrisRx" ];
         };
         hide_env_diff = true;
+      };
+    };
+    claude-code = {
+      enable = true;
+      package = unstable.claude-code;
+      settings = {
+        theme = "dark";
+        model = "opus";
+        spinnerVerbs = {
+          mode = "replace";
+          verbs = [
+            "Burning down old-growth forest"
+            "10x-ing carbon emissions"
+          ];
+        };
+        sandbox = {
+          filesystem = {
+            disabled = true;
+          };
+        };
+        enabledPlugins = {
+          "gopls-lsp@claude-plugins-official" = true;
+        };
+        permissions = {
+          disableAutoMode = "disable";
+          allow = [
+            "Bash(git diff:*)"
+          ];
+          deny = [
+            "WebFetch"
+            "Read(./.env)"
+          ];
+        };
+        hooks = {
+          PostToolUse = [
+            {
+              hooks = [
+                {
+                  command = "[ -n \"$NVIM\" ] && nvim --server $NVIM --remote-expr 'execute(\"checktime\")'";
+                  type = "command";
+                }
+              ];
+              matcher = "Edit|MultiEdit|Write";
+            }
+          ];
+        };
+      };
+    };
+
+    ghostty = {
+      enable = true;
+      enableZshIntegration = true;
+      installVimSyntax = true;
+      settings = {
+        background-opacity = 0.8;
+        maximize = true;
+        window-decoration = false;
       };
     };
 

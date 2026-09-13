@@ -32,6 +32,13 @@
     vim.fn.sign_define("DiagnosticSignWarn", { text = " ", texthl = "DiagnosticWarn", linehl = "", numhl = "" })
     vim.fn.sign_define("DiagnosticSignHint", { text = "󰌵", texthl = "DiagnosticHint", linehl = "", numhl = "" })
     vim.fn.sign_define("DiagnosticSignInfo", { text = " ", texthl = "DiagnosticInfo", linehl = "", numhl = "" })
+
+    vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
+      pattern = "term://*",
+      callback = function()
+        vim.cmd("startinsert")
+      end,
+    })
   '';
 
   diagnostic.settings = {

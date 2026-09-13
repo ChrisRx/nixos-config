@@ -79,6 +79,7 @@
   plugins.barbar = {
     enable = true;
     settings = {
+      exclude_name = [ "claude" ];
       maximum_padding = 0;
       minimum_padding = 0;
       sidebar_filetypes = {

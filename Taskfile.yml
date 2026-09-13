@@ -39,3 +39,48 @@ tasks:
       - sudo fwupdmgr refresh --force
       - sudo fwupdmgr get-updates
       - sudo fwupdmgr update
+
+  nvim:install:
+    cmds:
+      - nix profile install .#neovim
+  nvim:run:
+    cmds:
+      - nix run .#neovim
+  # Materialise the module into a self-contained config dir for a machine with
+  # no nix. Plugins are dereferenced out of the store; the LSP servers and tools
+  # the wrapper puts on PATH are NOT included and must be installed on the target.
+  nvim:vendor:
+    desc: Vendor the neovim module into a plain config dir (DEST=./dist/nvim)
+    silent: true
+    vars:
+      DEST: '{{ .DEST | default "./dist/nvim" }}'
+    cmds:
+      - |
+        set -eu
+        out=$(nix build --no-link --print-out-paths .#neovim {{ .VERBOSE }})
+        pack=$(grep -o 'packpath\^=[^"]*' "$out/bin/nvim" | head -n1 | cut -d'=' -f2)
+        dest={{ .DEST }}
+
+        rm -rf "$dest"
+        mkdir -p "$dest/pack/nixvim/start"
+
+        # Neovim sources init.lua before loading 'start' packages, and finds them
+        # via 'packpath' (which the generated config never touches) rather than
+        # 'runtimepath', so its stdpath("config") removal does not affect these.
+        "$out/bin/nixvim-print-init" > "$dest/init.lua"
+        printf '%s\n' \
+          '' \
+          '-- vendored: the store provider hosts above do not exist off-nix' \
+          'vim.g.ruby_host_prog = nil' \
+          'vim.g.python3_host_prog = nil' \
+          'vim.g.loaded_ruby_provider = 0' \
+          'vim.g.loaded_python3_provider = 0' >> "$dest/init.lua"
+
+        # -R not -r: BSD cp on macOS does not reliably accept the lowercase form.
+        cp -RL "$pack/pack/myNeovimPackages/start/." "$dest/pack/nixvim/start/"
+        chmod -R u+w "$dest"
+
+        printf '\nvendored %s plugins into %s (%s)\n' \
+          "$(ls "$dest/pack/nixvim/start" | wc -l)" "$dest" "$(du -sh "$dest" | cut -f1)"
+        printf 'copy to the target as ~/.config/nvim, or keep it separate with:\n'
+        printf '  cp -R %s ~/.config/nvim-nix && NVIM_APPNAME=nvim-nix nvim\n' "$dest"

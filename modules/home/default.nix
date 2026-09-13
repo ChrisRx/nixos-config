@@ -5,6 +5,7 @@
   # Supplied by homeModules.default; falls back to pkgs when this module is
   # imported bare, as core/default.nix does to read out options.packages.
   unstable ? pkgs,
+  inputs ? { },
   ...
 }:
 
@@ -44,6 +45,7 @@ in
         nerd-fonts.fira-code
         nerd-fonts.fira-mono
         nix-prefetch-scripts
+        inputs.iris.packages.${pkgs.stdenv.hostPlatform.system}.default
       ]
       ++ lib.lists.optionals (cfg.development.enable || cfg.all.enable) [
         protobuf

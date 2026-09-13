@@ -36,7 +36,7 @@
       make
       markdown
       nginx
-      #nix
+      nix
       proto
       python
       regex

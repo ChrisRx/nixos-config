@@ -1,0 +1,134 @@
+name: Vendor neovim config
+
+# On-demand only. Builds the neovim module for each target, vendors it into a
+# plain config dir with `task nvim:vendor`, and publishes the zips on one
+# GitHub release.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (default: nvim-vendor-<UTC timestamp>)'
+        required: false
+        type: string
+      prerelease:
+        description: 'Mark the release as a prerelease'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: nvim-vendor
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  vendor:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            system: x86_64-linux
+          - runner: macos-15-intel
+            system: x86_64-darwin
+          - runner: macos-15
+            system: aarch64-darwin
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install nix
+        uses: DeterminateSystems/nix-installer-action@v23
+        with:
+          extra-conf: |
+            experimental-features = nix-command flakes
+
+      # The vendored tree contains native treesitter grammars, so a runner whose
+      # arch drifts from the matrix label would produce a mislabelled artifact.
+      - name: Verify runner arch matches target
+        run: |
+          set -euo pipefail
+          actual=$(nix eval --impure --raw --expr 'builtins.currentSystem')
+          echo "runner=${{ matrix.runner }} expected=${{ matrix.system }} actual=$actual"
+          [ "$actual" = "${{ matrix.system }}" ]
+
+      - name: Vendor the config
+        # `nix develop`, not `nix shell nixpkgs#go-task`: the bare registry alias
+        # resolves to nixpkgs-unstable, which throws on x86_64-darwin. The flake's
+        # own nixpkgs (26.05) still supports it.
+        # `.#neovim` resolves to packages.<currentSystem>.neovim; the arch guard
+        # above is what pins that to matrix.system.
+        run: nix develop --command task nvim:vendor
+
+      # Archive root is `nvim/`, so the target extracts it straight to
+      # ~/.config/nvim (or ~/.config/nvim-nix for NVIM_APPNAME).
+      - name: Create zip
+        working-directory: dist
+        run: zip -qr "../nvim-config-${{ matrix.system }}.zip" nvim
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: nvim-config-${{ matrix.system }}
+          path: nvim-config-${{ matrix.system }}.zip
+          retention-days: 1
+          if-no-files-found: error
+
+  release:
+    needs: vendor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: assets
+          merge-multiple: true
+
+      - name: Resolve release tag
+        id: meta
+        run: |
+          set -euo pipefail
+          tag='${{ inputs.tag }}'
+          if [ -z "$tag" ]; then
+            tag="nvim-vendor-$(date -u +%Y%m%d-%H%M%S)"
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          ls -lh assets
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release create "$TAG" assets/*.zip \
+            --title "neovim config $TAG" \
+            --target "${{ github.sha }}" \
+            ${{ inputs.prerelease && '--prerelease' || '' }} \
+            --notes "$(cat <<EOF
+          Vendored neovim config built from \`.#neovim\` at commit \`${{ github.sha }}\`.
+
+          Plugins are dereferenced out of the nix store, so the target machine needs no nix.
+
+          | asset | target |
+          | --- | --- |
+          | \`nvim-config-x86_64-linux.zip\` | Linux, Intel/AMD |
+          | \`nvim-config-x86_64-darwin.zip\` | macOS, Intel |
+          | \`nvim-config-aarch64-darwin.zip\` | macOS, Apple Silicon |
+
+          **Install**
+          \`\`\`sh
+          unzip nvim-config-<target>.zip -d ~/.config     # extracts as ~/.config/nvim
+          # or keep it alongside an existing config:
+          unzip nvim-config-<target>.zip -d /tmp/nv && mv /tmp/nv/nvim ~/.config/nvim-nix
+          NVIM_APPNAME=nvim-nix nvim
+          \`\`\`
+
+          **Caveats**
+          - Pick the asset matching your machine: the treesitter grammars are native compiled objects.
+          - LSP servers and CLI tools are **not** included. The nix wrapper puts ~28 of them on \`PATH\` (gopls, rust-analyzer, lua-language-server, nixd, clang-tools, shfmt, nixfmt, ...). \`nvim-lspconfig\` loads but starts only what the target already has installed.
+          - The ruby and python3 providers are disabled, since their host programs are store paths.
+          EOF
+          )"

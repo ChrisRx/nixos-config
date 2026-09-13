@@ -22,7 +22,9 @@
         tailwind = true;
       };
     };
-    comment = { enable = true; };
+    comment = {
+      enable = true;
+    };
     gitlinker = {
       # default mapping: <leader>gy
       enable = true;
@@ -31,28 +33,40 @@
       enable = true;
       settings = {
         signs = {
-          delete = { text = "󰍵"; };
-          changedelete = { text = "󱕖"; };
+          delete = {
+            text = "󰍵";
+          };
+          changedelete = {
+            text = "󱕖";
+          };
         };
       };
     };
-    glow = { enable = true; };
+    glow = {
+      enable = true;
+    };
     indent-blankline = {
       enable = true;
       settings = {
-        indent = { char = "│"; };
+        indent = {
+          char = "│";
+        };
         scope.enabled = false;
       };
     };
-    lastplace = { enable = true; };
+    lastplace = {
+      enable = true;
+    };
     luasnip = {
       enable = true;
-      # fromLua = [{ paths = ./snippets; }];
+      # fromLua = [ { paths = ../snippets; } ];
     };
     mini = {
       enable = true;
       modules = {
-        pairs = { enable = true; };
+        pairs = {
+          enable = true;
+        };
         surround = {
           mappings = {
             add = "gsa";
@@ -100,10 +114,17 @@
     tmux-navigator = {
       enable = true;
       autoLoad = true;
-      settings = { disable_when_zoomed = 1; };
+      settings = {
+        disable_when_zoomed = 1;
+        no_mappings = 1;
+      };
     };
-    trouble = { enable = true; };
-    which-key = { enable = true; };
+    trouble = {
+      enable = true;
+    };
+    which-key = {
+      enable = true;
+    };
     web-devicons = {
       enable = true;
       autoLoad = true;

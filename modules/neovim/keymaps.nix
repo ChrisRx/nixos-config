@@ -57,6 +57,61 @@
       action = "<cmd>TmuxNavigateRight<cr>";
     }
     {
+      mode = [
+        "t"
+      ];
+      key = "jk";
+      action = "<C-\\><C-n>";
+      options = {
+        desc = "Exit terminal mode";
+        silent = true;
+      };
+    }
+    {
+      mode = [
+        "t"
+      ];
+      key = "<C-h>";
+      action = "<C-\\><C-n>:TmuxNavigateLeft<cr>";
+      options = {
+        noremap = true;
+        silent = true;
+      };
+    }
+    {
+      mode = [
+        "t"
+      ];
+      key = "<C-j>";
+      action = "<C-\\><C-n>:TmuxNavigateDown<cr>";
+      options = {
+        noremap = true;
+        silent = true;
+      };
+    }
+    {
+      mode = [
+        "t"
+      ];
+      key = "<C-k>";
+      action = "<C-\\><C-n>:TmuxNavigateUp<cr>";
+      options = {
+        noremap = true;
+        silent = true;
+      };
+    }
+    {
+      mode = [
+        "t"
+      ];
+      key = "<C-l>";
+      action = "<C-\\><C-n>:TmuxNavigateRight<cr>";
+      options = {
+        noremap = true;
+        silent = true;
+      };
+    }
+    {
       mode = [ "n" ];
       key = "<leader>/";
       action.__raw = ''

@@ -8,10 +8,9 @@
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixvim = {
-      url = "github:nix-community/nixvim/nixos-26.05";
-    };
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+    nixvim.url = "github:nix-community/nixvim/nixos-26.05";
+    iris.url = "github:versenilvis/iris/main";
   };
 
   outputs =
@@ -25,6 +24,16 @@
     let
       username = "chris";
       system = "x86_64-linux";
+
+      # Systems the neovim package is exposed for. The NixOS hosts below stay on
+      # `system`; this list only widens `packages` so the vendored config can be
+      # built for macOS too.
+      packageSystems = [
+        "x86_64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
+      forAllSystems = nixpkgs.lib.genAttrs packageSystems;
 
       # Build the neovim package against a caller-supplied nixpkgs, so consumers
       # get an nvim built from their own tree. Only nixvim's option definitions
@@ -42,10 +51,26 @@
         nvidia = import ./modules/nixos/nvidia;
       };
 
-      packages.${system}.neovim = mkNeovim (
-        import nixpkgs {
-          inherit system;
-          config.allowUnfree = true;
+      packages = forAllSystems (system: {
+        neovim = mkNeovim (
+          import nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
+          }
+        );
+      });
+
+      # CI runs the Taskfile via `nix develop -c task`, so the task runner comes
+      # from this flake's pinned nixpkgs. The bare `nixpkgs` registry alias
+      # resolves to unstable, which has dropped x86_64-darwin and throws on
+      # evaluation there.
+      devShells = forAllSystems (
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in
+        {
+          default = pkgs.mkShellNoCC { packages = [ pkgs.go-task ]; };
         }
       );
 
