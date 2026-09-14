@@ -70,7 +70,13 @@
           pkgs = import nixpkgs { inherit system; };
         in
         {
-          default = pkgs.mkShellNoCC { packages = [ pkgs.go-task ]; };
+          default = pkgs.mkShellNoCC {
+            packages = [
+              pkgs.go-task
+              pkgs.jq
+              pkgs.curl
+            ];
+          };
         }
       );
 

@@ -1,0 +1,21 @@
+{
+  "branch": "nixos-26.05",
+  "minMajor": 7,
+  "series": {
+    "7.0": {
+      "rev": "9abeb6b1c7c28e4ff838ed393e7e7ba9fb29cb50",
+      "sha256": "sha256-nLSqIECKSka6FQ36JKPH2cIsFzF0hkV/zFfLBXciPqk=",
+      "version": "7.0.14"
+    },
+    "7.1": {
+      "rev": "0a93637388adbaeed82e91096d034f4ffbf32428",
+      "sha256": "sha256-qKEpJu0Sg/c1rI+KF0IeGTp9P135O9yLSpN3h/0fnUc=",
+      "version": "7.1.13"
+    },
+    "7.2": {
+      "rev": "c3eea5b2156db11c7eeeada3dc737711255b253e",
+      "sha256": "sha256-vdhpDJ3Lr24lkZ+fDCjmBRRtw9/vcSzkqGJOJyF5h2U=",
+      "version": "7.2.5"
+    }
+  }
+}

@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }: {
+{ ... }: {
   imports = [
     ./hardware-configuration.nix
     ../../modules/nixos/core

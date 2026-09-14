@@ -40,6 +40,28 @@ tasks:
       - sudo fwupdmgr get-updates
       - sudo fwupdmgr update
 
+  # Refresh the whole kernel pin table that modules/nixos/core/kernel.nix reads.
+  # Run periodically: each series is pinned to the newest nixpkgs revision that
+  # still carries it, so one is already available whenever a host needs it.
+  # The argument is a floor, not an exact major, so 8.x is picked up on its own.
+  kernel:pin:
+    desc: Refresh the frozen kernel revision table (task kernel:pin -- 8 raises the floor)
+    silent: true
+    cmds:
+      - |
+        set -eu
+        dest=modules/nixos/core/kernel-pins.json
+
+        # Via a temp file, not a direct redirect: the script reads $dest as
+        # PREVIOUS_PINS, and the shell would truncate it before the run starts.
+        # The output carries no timestamp, so an unchanged table rewrites
+        # byte-identically and leaves nothing for git to commit.
+        PREVIOUS_PINS="$dest" ./scripts/find-kernel-pins.sh {{ .CLI_ARGS }} > "$dest.new"
+        mv "$dest.new" "$dest"
+
+        jq -r '"pinned \(.branch) (floor \(.minMajor))",
+               (.series | to_entries[] | "  \(.key) -> \(.value.version)  \(.value.rev[0:12])")' "$dest"
+
   nvim:install:
     cmds:
       - nix profile install .#neovim

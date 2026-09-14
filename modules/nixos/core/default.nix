@@ -4,6 +4,7 @@ let cfg = config.core;
 in {
   imports = [
     ./boot.nix
+    ./kernel.nix
     ./networking.nix
     ./programs.nix
     ./system.nix

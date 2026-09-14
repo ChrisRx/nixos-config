@@ -1,0 +1,76 @@
+name: Refresh kernel pins
+
+# Keeps modules/nixos/core/kernel-pins.json current so a kernel series is
+# already pinned by the time a host needs it. The task is a no-op when nothing
+# changed, so a quiet week produces no commit.
+on:
+  schedule:
+    # Mondays, off the hour: scheduled runs are queued at busy times.
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      min_major:
+        description: 'Raise the floor to this major version (blank keeps the recorded one)'
+        required: false
+        type: string
+
+concurrency:
+  group: kernel-pins
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install nix
+        uses: DeterminateSystems/nix-installer-action@v23
+        with:
+          extra-conf: |
+            experimental-features = nix-command flakes
+
+      # The floor and branch are recorded in the table, so the scheduled run
+      # needs no arguments; a dispatch may override the floor to trim it.
+      - name: Refresh table
+        run: nix develop --command task kernel:pin -- ${{ inputs.min_major }}
+
+      # Body is built here because the commit message is an action input; the
+      # action itself decides whether there is anything to commit.
+      - name: Describe the table
+        id: describe
+        run: |
+          set -euo pipefail
+          pins=modules/nixos/core/kernel-pins.json
+          {
+            echo 'body<<PINS'
+            nix develop --command jq -r \
+              '"\(.branch), floor \(.minMajor).", "",
+               (.series | to_entries[] | "  \(.key) -> \(.value.version)  \(.value.rev[0:12])")' "$pins"
+            echo 'PINS'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Commit if changed
+        id: commit
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          file_pattern: modules/nixos/core/kernel-pins.json
+          commit_message: |
+            chore(kernel): refresh pin table
+
+            ${{ steps.describe.outputs.body }}
+          commit_user_name: 'github-actions[bot]'
+          commit_user_email: '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Job summary
+        run: |
+          set -euo pipefail
+          if [ "${{ steps.commit.outputs.changes_detected }}" = 'true' ]; then
+            printf '### Kernel pins updated\n\n```\n%s\n```\n' \
+              '${{ steps.describe.outputs.body }}' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'Kernel pins unchanged.' >> "$GITHUB_STEP_SUMMARY"
+          fi
