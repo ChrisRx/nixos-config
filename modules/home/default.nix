@@ -2,10 +2,8 @@
   config,
   lib,
   pkgs,
-  # Supplied by homeModules.default; falls back to pkgs when this module is
-  # imported bare, as core/default.nix does to read out options.packages.
-  unstable ? pkgs,
-  inputs ? { },
+  unstable,
+  inputs,
   ...
 }:
 
@@ -15,25 +13,7 @@ in
 {
   imports = [ ./programs ];
 
-  options.packages = builtins.listToAttrs (
-    map
-      (
-        name:
-        lib.nameValuePair "${name}" {
-          enable = lib.mkEnableOption "Enable ${name} packages";
-        }
-      )
-      [
-        # categories
-        "all"
-        "cloud"
-        "development"
-        "experimental"
-        "extra"
-        "fonts"
-        "utils"
-      ]
-  );
+  options.packages = import ./packages-options.nix { inherit lib; };
 
   config = {
     home.packages =

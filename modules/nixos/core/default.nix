@@ -1,7 +1,14 @@
-{ config, pkgs, lib, username, ... }:
+{
+  config,
+  lib,
+  username,
+  ...
+}:
 
-let cfg = config.core;
-in {
+let
+  cfg = config.core;
+in
+{
   imports = [
     ./boot.nix
     ./kernel.nix
@@ -21,8 +28,7 @@ in {
         description = "";
       };
     };
-    packages =
-      (import ../../home { inherit pkgs config lib; }).options.packages;
+    packages = import ../../home/packages-options.nix { inherit lib; };
 
     extraPackages = lib.mkOption {
       type = lib.types.listOf lib.types.package;

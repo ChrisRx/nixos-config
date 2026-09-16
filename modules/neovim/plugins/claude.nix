@@ -1,4 +1,4 @@
-{ ... }: {
+{ unstable, ... }: {
   keymaps = [
     {
       mode = [
@@ -28,7 +28,17 @@
   };
   plugins.claudecode = {
     enable = true;
+    # nixos-26.05 froze claudecode.nvim at 2026-04-27, two months before
+    # `diff_opts.layout = "unified"` landed upstream. Passing "unified" to the
+    # frozen plugin trips an assert in its setup(), which aborts the rest of
+    # init.lua, so this one plugin tracks unstable.
+    package = unstable.vimPlugins.claudecode-nvim;
     settings = {
+      diff_opts = {
+        # single buffer with deleted lines inline, VS Code style
+        layout = "unified";
+        keep_terminal_focus = true;
+      };
       terminal = {
         provider = "snacks";
         # fraction of the editor width, must be > 0 and < 1

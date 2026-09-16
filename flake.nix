@@ -35,13 +35,50 @@
       ];
       forAllSystems = nixpkgs.lib.genAttrs packageSystems;
 
+      lib = nixpkgs.lib.extend (
+        final: prev: {
+          extra = import ./lib {
+            inherit inputs username;
+            lib = final;
+          };
+        }
+      );
+
+      # nixvim runs its own `evalModules` and builds the `lib` module arg from
+      # its own pin, so nothing under ./modules/neovim sees the extension above
+      # unless it is handed in explicitly. `evalNixvim` asserts that any lib
+      # passed through `extraSpecialArgs` still carries nixvim's own helpers,
+      # hence layering nixvim's overlay on top rather than passing `lib` bare.
+      nixvimLib = lib.extend inputs.nixvim.lib.overlay;
+
+      # nixpkgs-unstable instantiated for one system. Shared by the home
+      # modules and the neovim package so both sides resolve to a single
+      # instance rather than evaluating the tree twice.
+      mkUnstable =
+        system:
+        import nixpkgs-unstable {
+          inherit system;
+          config.allowUnfree = true;
+        };
+
       # Build the neovim package against a caller-supplied nixpkgs, so consumers
       # get an nvim built from their own tree. Only nixvim's option definitions
       # come from nixvim's own pin.
+      #
+      # `unstable` has to ride in on extraSpecialArgs: nixvim runs its own
+      # module-system evaluation, so home-manager's `_module.args.unstable`
+      # is not in scope for anything under ./modules/neovim.
       mkNeovim =
-        pkgs:
+        {
+          pkgs,
+          unstable,
+        }:
         inputs.nixvim.legacyPackages.${pkgs.stdenv.hostPlatform.system}.makeNixvimWithModule {
           inherit pkgs;
+          extraSpecialArgs = {
+            inherit unstable;
+            lib = nixvimLib;
+          };
           module = import ./modules/neovim;
         };
     in
@@ -52,12 +89,13 @@
       };
 
       packages = forAllSystems (system: {
-        neovim = mkNeovim (
-          import nixpkgs {
+        neovim = mkNeovim {
+          pkgs = import nixpkgs {
             inherit system;
             config.allowUnfree = true;
-          }
-        );
+          };
+          unstable = mkUnstable system;
+        };
       });
 
       # CI runs the Taskfile via `nix develop -c task`, so the task runner comes
@@ -82,10 +120,47 @@
 
       homeModules = {
         neovim =
-          { pkgs, ... }:
           {
-            home.packages = [ (mkNeovim pkgs) ];
-            home.sessionVariables.EDITOR = "nvim";
+            pkgs,
+            lib,
+            unstable,
+            ...
+          }:
+          {
+            # Going through nixvim's own home-manager module rather than
+            # dropping `mkNeovim`'s package into `home.packages` is what makes
+            # the whole option tree visible to importers: `programs.nixvim.*`
+            # becomes a real submodule option here, so a consumer can override
+            # anything under it. A pre-built package has no options to merge.
+            imports = [ inputs.nixvim.homeModules.nixvim ];
+
+            programs.nixvim = {
+              enable = true;
+              defaultEditor = true;
+              imports = [ ./modules/neovim ];
+
+              # Off by default, in which case nixvim instantiates nixpkgs from
+              # its own pin and the importer's `config` (notably allowUnfree,
+              # which cmp-emoji needs) does not apply. Keeps this module's
+              # behaviour matched to `mkNeovim`, which builds against the
+              # caller's tree.
+              nixpkgs.useGlobalPackages = true;
+
+              # nixvim's home-manager wrapper defaults this to false, which
+              # would write the config out to ~/.config/nvim instead of sealing
+              # it into the wrapper. Held at the previous behaviour, matching
+              # `packages.<system>.neovim`; mkDefault so importers can flip it.
+              wrapRc = lib.mkDefault true;
+
+              # nixvim evaluates this submodule separately, so `unstable` has to
+              # be re-declared inside it; the outer home-manager module arg is
+              # not in scope for anything under ./modules/neovim.
+              _module.args.unstable = unstable;
+            };
+
+            # homeModules.default normally supplies this; the mkDefault keeps
+            # this module importable on its own, where nothing else defines it.
+            _module.args.unstable = lib.mkDefault (mkUnstable pkgs.stdenv.hostPlatform.system);
           };
 
         default =
@@ -99,14 +174,11 @@
             # Passed as a module arg rather than a pkgs overlay so it applies
             # identically under standalone home-manager and under NixOS with
             # useGlobalPkgs, where a home-level overlay would be ignored.
-            _module.args.unstable = import nixpkgs-unstable {
-              inherit (pkgs.stdenv.hostPlatform) system;
-              config.allowUnfree = true;
-            };
+            _module.args.unstable = mkUnstable pkgs.stdenv.hostPlatform.system;
           };
       };
       nixosConfigurations = {
-        htpc = nixpkgs.lib.nixosSystem {
+        htpc = lib.nixosSystem {
           inherit system;
           modules = [ ./hosts/htpc ];
           specialArgs = {
@@ -116,7 +188,7 @@
         };
       };
       nixosConfigurations = {
-        fw13 = nixpkgs.lib.nixosSystem {
+        fw13 = lib.nixosSystem {
           inherit system;
           modules = [
             ./hosts/fw13
