@@ -1,10 +1,10 @@
-{ pkgs, ... }: {
+{ pkgs, lib, ... }: {
   extraConfigLuaPre = ''
     vim.cmd([[autocmd FileType templ setlocal noexpandtab commentstring=//\ %s]])
   '';
 
   plugins.treesitter = {
-    enable = true;
+    enable = lib.mkDefault true;
     nixGrammars = true;
     settings = {
       highlight = {

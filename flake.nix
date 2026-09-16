@@ -86,6 +86,28 @@
       nixosModules = {
         core = import ./modules/nixos/core;
         nvidia = import ./modules/nixos/nvidia;
+
+        # System-wide counterpart to homeModules.neovim, for hosts that want
+        # nvim in /run/current-system rather than per-user. Same option tree,
+        # so `programs.nixvim.*` is overridable here too. Importing both on one
+        # host is redundant; pick whichever layer owns the editor.
+        neovim =
+          { pkgs, lib, ... }:
+          {
+            imports = [ inputs.nixvim.nixosModules.nixvim ];
+
+            programs.nixvim = {
+              enable = true;
+              defaultEditor = true;
+              imports = [ ./modules/neovim ];
+              nixpkgs.useGlobalPackages = true;
+              wrapRc = lib.mkDefault true;
+
+              # NixOS evaluation has no `unstable` module arg to inherit, so
+              # this side resolves it directly. See homeModules.neovim.
+              _module.args.unstable = mkUnstable pkgs.stdenv.hostPlatform.system;
+            };
+          };
       };
 
       packages = forAllSystems (system: {

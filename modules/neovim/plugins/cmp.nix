@@ -1,12 +1,12 @@
-{ ... }: {
+{ lib, ... }: {
   plugins = {
-    cmp-buffer.enable = true;
-    cmp-emoji.enable = true;
-    cmp-nvim-lsp.enable = true;
-    cmp-path.enable = true;
-    cmp_luasnip.enable = true;
+    cmp-buffer.enable = lib.mkDefault true;
+    cmp-emoji.enable = lib.mkDefault true;
+    cmp-nvim-lsp.enable = lib.mkDefault true;
+    cmp-path.enable = lib.mkDefault true;
+    cmp_luasnip.enable = lib.mkDefault true;
     cmp = {
-      enable = true;
+      enable = lib.mkDefault true;
 
       settings = {
         snippet = { expand = "luasnip"; };

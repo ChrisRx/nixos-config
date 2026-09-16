@@ -1,4 +1,4 @@
-{ ... }: {
+{ lib, ... }: {
   keymaps = [
     {
       mode = [ "n" ];
@@ -19,7 +19,7 @@
   highlight = { BufferCurrentSign.fg = "white"; };
 
   plugins.nvim-tree = {
-    enable = true;
+    enable = lib.mkDefault true;
     openOnSetup = true;
 
     settings = {

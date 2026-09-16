@@ -1,7 +1,7 @@
-{ ... }: {
+{ lib, ... }: {
   plugins = {
     none-ls = {
-      enable = true;
+      enable = lib.mkDefault true;
 
       settings = {
         on_attach = ''
@@ -23,13 +23,13 @@
         '';
       };
       sources = {
-        diagnostics = { golangci_lint.enable = true; };
+        diagnostics = { golangci_lint.enable = lib.mkDefault true; };
         formatting = {
-          gofmt.enable = true;
-          goimports.enable = true;
-          nixfmt.enable = true;
+          gofmt.enable = lib.mkDefault true;
+          goimports.enable = lib.mkDefault true;
+          nixfmt.enable = lib.mkDefault true;
           shellharden.enable = false;
-          shfmt.enable = true;
+          shfmt.enable = lib.mkDefault true;
         };
       };
     };

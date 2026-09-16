@@ -1,4 +1,4 @@
-{ ... }: {
+{ lib, ... }: {
   keymaps = [
     {
       mode = [ "n" ];
@@ -77,7 +77,7 @@
     };
   };
   plugins.barbar = {
-    enable = true;
+    enable = lib.mkDefault true;
     settings = {
       exclude_name = [ "claude" ];
       maximum_padding = 0;

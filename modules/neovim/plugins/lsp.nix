@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 {
   extraPackages = with pkgs; [
     gopls
@@ -13,7 +13,7 @@
   ];
   plugins = {
     lsp = {
-      enable = true;
+      enable = lib.mkDefault true;
       inlayHints = true;
       keymaps.lspBuf = {
         "gd" = "definition";
@@ -23,31 +23,31 @@
         "K" = "hover";
       };
       servers = {
-        bashls.enable = true;
-        buf_ls.enable = true;
-        clangd.enable = true;
+        bashls.enable = lib.mkDefault true;
+        buf_ls.enable = lib.mkDefault true;
+        clangd.enable = lib.mkDefault true;
         lua_ls = {
-          enable = true;
+          enable = lib.mkDefault true;
           settings.telemetry.enable = false;
         };
         gopls = {
-          enable = true;
+          enable = lib.mkDefault true;
           package = null; # default pkgs.gopls
           settings = {
             "ui.diagnostics.vulncheck" = "Off";
           };
         };
         templ = {
-          enable = true;
+          enable = lib.mkDefault true;
         };
         html = {
-          enable = true;
+          enable = lib.mkDefault true;
         };
         tailwindcss = {
-          enable = true;
+          enable = lib.mkDefault true;
         };
         nixd = {
-          enable = true;
+          enable = lib.mkDefault true;
           # Without these nixd falls back to <nixpkgs>, which covers package
           # and stock NixOS option completion but nothing specific to this
           # flake: no home-manager options, no nixvim options, and none of the
@@ -88,7 +88,7 @@
       };
     };
     rustaceanvim = {
-      enable = true;
+      enable = lib.mkDefault true;
       settings = {
         server = {
           default_settings = {

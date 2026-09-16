@@ -1,4 +1,4 @@
-{ ... }: {
+{ lib, ... }: {
   keymaps = [{
     mode = [ "n" ];
     key = "<leader>gb";
@@ -7,7 +7,7 @@
   }];
   plugins = {
     gitblame = {
-      enable = true;
+      enable = lib.mkDefault true;
       settings = { enabled = false; };
     };
   };

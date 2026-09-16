@@ -49,13 +49,71 @@ home-manager = {
 }
 ```
 
-My neovim configuration using [nixvim](https://nix-community.github.io/nixvim/) can be used within other installations of home-manager:
+### neovim
+
+<p align="center">
+  <img src="neovim.png" alt="neovim configuration screenshot" width="800">
+</p>
+
+My neovim configuration using [nixvim](https://nix-community.github.io/nixvim/) is exposed as a flake output and can be used on any machine, with or without NixOS.
+
+Run it without installing anything:
+
+```shell
+nix run github:ChrisRx/nixos-config#neovim
+```
+
+Add the flake as an input to use it as a module:
 
 ```nix
-users.${username} = {
-  imports = [ ../../modules/home/programs/neovim ];
-}
+inputs.neovim.url = "github:ChrisRx/nixos-config";
 ```
+
+As a home-manager module (works standalone or under NixOS):
+
+```nix
+imports = [ inputs.neovim.homeModules.neovim ];
+```
+
+As a NixOS module, installing it system-wide instead of per-user:
+
+```nix
+imports = [ inputs.neovim.nixosModules.neovim ];
+```
+
+Either module exposes the full `programs.nixvim` option tree, so anything can be overridden. Every plugin is enabled with `mkDefault`, so turning one off needs nothing special:
+
+```nix
+programs.nixvim = {
+  plugins.treesitter.enable = false;
+  plugins.lsp.servers.gopls.enable = false;
+};
+```
+
+Everything else is still defined normally and needs `mkForce` to change:
+
+```nix
+programs.nixvim.opts.shiftwidth = lib.mkForce 4;
+```
+
+Plugin `settings` blocks are freeform and merge per key, so adding one is just:
+
+```nix
+programs.nixvim.plugins.gitsigns.settings.signs.add.text = "+";
+```
+
+Or just install the package directly, which takes no options:
+
+```nix
+environment.systemPackages = [ inputs.neovim.packages.${pkgs.stdenv.hostPlatform.system}.neovim ];
+```
+
+A few things to note:
+
+* `nixpkgs.config.allowUnfree` must be set, since one plugin (`cmp-emoji`) is marked unfree.
+* Both modules default to `wrapRc = true`, keeping the config sealed in the wrapper rather than writing `~/.config/nvim`. Set `programs.nixvim.wrapRc = false` to manage it as real files.
+* Importing both modules on one host is redundant; pick whichever layer should own the editor.
+* Supported on `x86_64-linux` and `aarch64-darwin`. `x86_64-darwin` does not work, as nixpkgs-unstable has dropped it.
 
 ## TODO
 
@@ -63,14 +121,7 @@ users.${username} = {
 * Add override for hostname in Taskfile.yml
 * Better packages options for different sets of home-manager packages
 * neovim configuration is still a WIP
-  * treesitter grammars are not installing correctly and I need to still run `TSInstall` for some reason
+  * treesitter grammars are not installing correctly and I need to still run `TSInstall` for some reason (might be good now?)
   * some small graphical quirks (spacing on bars)
-  * need better tab styling
-  * better nvim-tree styling
   * finish Go snippets
-  * telescope configuration still needs some work
-  * motion repeat isn't working for some reason (it brings up the menu, despite noremap)
 * hyprland module is a placeholder and needs a lot of work
-* checkout cosmic again when stuff gets more fleshed out
-  * three-finger swipe for workspace switch
-  * fprint behavior on greeter is broken in current version

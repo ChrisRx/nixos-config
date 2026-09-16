@@ -1,4 +1,4 @@
-{ ... }: {
+{ lib, ... }: {
   imports = [
     ./barbar.nix
     ./claude.nix
@@ -16,21 +16,21 @@
 
   plugins = {
     colorizer = {
-      enable = true;
+      enable = lib.mkDefault true;
       settings = {
         RRGGBB = true;
         tailwind = true;
       };
     };
     comment = {
-      enable = true;
+      enable = lib.mkDefault true;
     };
     gitlinker = {
       # default mapping: <leader>gy
-      enable = true;
+      enable = lib.mkDefault true;
     };
     gitsigns = {
-      enable = true;
+      enable = lib.mkDefault true;
       settings = {
         signs = {
           delete = {
@@ -43,10 +43,10 @@
       };
     };
     glow = {
-      enable = true;
+      enable = lib.mkDefault true;
     };
     indent-blankline = {
-      enable = true;
+      enable = lib.mkDefault true;
       settings = {
         indent = {
           char = "│";
@@ -55,17 +55,17 @@
       };
     };
     lastplace = {
-      enable = true;
+      enable = lib.mkDefault true;
     };
     luasnip = {
-      enable = true;
+      enable = lib.mkDefault true;
       # fromLua = [ { paths = ../snippets; } ];
     };
     mini = {
-      enable = true;
+      enable = lib.mkDefault true;
       modules = {
         pairs = {
-          enable = true;
+          enable = lib.mkDefault true;
         };
         surround = {
           mappings = {
@@ -81,7 +81,7 @@
       };
     };
     noice = {
-      enable = true;
+      enable = lib.mkDefault true;
       settings = {
         lsp = {
           override = {
@@ -104,7 +104,7 @@
       };
     };
     notify = {
-      enable = true;
+      enable = lib.mkDefault true;
       # remove animations for performance
       settings = {
         stages = "static";
@@ -112,7 +112,7 @@
       };
     };
     tmux-navigator = {
-      enable = true;
+      enable = lib.mkDefault true;
       autoLoad = true;
       settings = {
         disable_when_zoomed = 1;
@@ -120,13 +120,13 @@
       };
     };
     trouble = {
-      enable = true;
+      enable = lib.mkDefault true;
     };
     which-key = {
-      enable = true;
+      enable = lib.mkDefault true;
     };
     web-devicons = {
-      enable = true;
+      enable = lib.mkDefault true;
       autoLoad = true;
       settings = {
         color_icons = true;

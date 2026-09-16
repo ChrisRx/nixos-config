@@ -1,6 +1,6 @@
-{ ... }: {
+{ lib, ... }: {
   plugins.telescope = {
-    enable = true;
+    enable = lib.mkDefault true;
     keymaps = {
       "<C-p>" = {
         action = "git_files";

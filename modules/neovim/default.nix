@@ -1,4 +1,4 @@
-{ pkgs, ... }: {
+{ pkgs, lib, ... }: {
   imports = [
     ./keymaps.nix
     ./plugins
@@ -50,7 +50,7 @@
   };
 
   colorschemes.catppuccin = {
-    enable = true;
+    enable = lib.mkDefault true;
     settings = {
       flavour = "mocha";
       color_overrides = {

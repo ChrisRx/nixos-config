@@ -1,6 +1,6 @@
-{ ... }: {
+{ lib, ... }: {
   plugins.lualine = {
-    enable = true;
+    enable = lib.mkDefault true;
     settings = {
       options = {
         theme = "onedark";

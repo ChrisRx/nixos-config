@@ -1,4 +1,4 @@
-{ unstable, ... }: {
+{ unstable, lib, ... }: {
   keymaps = [
     {
       mode = [
@@ -24,10 +24,10 @@
     }
   ];
   plugins.snacks = {
-    enable = true;
+    enable = lib.mkDefault true;
   };
   plugins.claudecode = {
-    enable = true;
+    enable = lib.mkDefault true;
     # nixos-26.05 froze claudecode.nvim at 2026-04-27, two months before
     # `diff_opts.layout = "unified"` landed upstream. Passing "unified" to the
     # frozen plugin trips an assert in its setup(), which aborts the rest of

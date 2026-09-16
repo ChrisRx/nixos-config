@@ -1,4 +1,4 @@
-{ ... }: {
+{ lib, ... }: {
   keymaps = [{
     mode = [ "n" ];
     key = "<leader>gd";
@@ -7,7 +7,7 @@
   }];
   plugins = {
     goto-preview = {
-      enable = true;
+      enable = lib.mkDefault true;
       settings = {
         width = 120;
         height = 30;
