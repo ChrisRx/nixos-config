@@ -37,22 +37,34 @@
       };
     }
     {
-      mode = [ "n" ];
+      mode = [
+        "n"
+        "v"
+      ];
       key = "<C-h>";
       action = "<cmd>TmuxNavigateLeft<cr>";
     }
     {
-      mode = [ "n" ];
+      mode = [
+        "n"
+        "v"
+      ];
       key = "<C-j>";
       action = "<cmd>TmuxNavigateDown<cr>";
     }
     {
-      mode = [ "n" ];
+      mode = [
+        "n"
+        "v"
+      ];
       key = "<C-k>";
       action = "<cmd>TmuxNavigateUp<cr>";
     }
     {
-      mode = [ "n" ];
+      mode = [
+        "n"
+        "v"
+      ];
       key = "<C-l>";
       action = "<cmd>TmuxNavigateRight<cr>";
     }

@@ -9,7 +9,11 @@
     "docker"
     "podman"
   ];
-  gnome.enable = true;
+  desktop.gnome.enable = true;
+  desktop.hyprland = {
+    enable = true;
+    mutableConfig = true;
+  };
   networking.hostName = "fw13";
   steam.enable = true;
   nixpkgs.config.allowUnfree = true;

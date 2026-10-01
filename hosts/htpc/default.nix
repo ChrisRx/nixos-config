@@ -8,7 +8,7 @@
   imports = [
     ./hardware-configuration.nix
     ./../../modules/nixos/core
-    ./../../modules/nixos/gnome
+    ./../../modules/desktop
     ./../../modules/nixos/nvidia
     ./../../modules/nixos/steam
   ];
@@ -20,7 +20,7 @@
     extra.enable = true;
     utils.enable = true;
   };
-  gnome.enable = true;
+  desktop.gnome.enable = true;
   networking.hostName = "htpc";
 
   nvidia.enable = true;

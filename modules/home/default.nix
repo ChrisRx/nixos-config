@@ -3,7 +3,6 @@
   lib,
   pkgs,
   unstable,
-  inputs,
   ...
 }:
 
@@ -11,7 +10,10 @@ let
   cfg = config.packages;
 in
 {
-  imports = [ ./programs ];
+  imports = [
+    ../desktop/home.nix
+    ./programs
+  ];
 
   options.packages = import ./packages-options.nix { inherit lib; };
 
@@ -25,7 +27,7 @@ in
         nerd-fonts.fira-code
         nerd-fonts.fira-mono
         nix-prefetch-scripts
-        inputs.iris.packages.${pkgs.stdenv.hostPlatform.system}.default
+        catppuccin-gtk
       ]
       ++ lib.lists.optionals (cfg.development.enable || cfg.all.enable) [
         protobuf
@@ -90,6 +92,9 @@ in
         html-tidy
         sops
         jujutsu
+        qmk
+        qmk-udev-rules
+        keychron-udev-rules
       ]
       ++ lib.lists.optionals (cfg.fonts.enable || cfg.all.enable) [
         nerd-fonts."m+"

@@ -1,14 +1,23 @@
-{
-  unstable,
-  ...
-}:
+{ ... }:
 {
   imports = [
     ./alacritty.nix
+    ./claude-code.nix
+    ./ghostty.nix
     ./git.nix
     ./tmux.nix
     ./zsh.nix
   ];
+
+  catppuccin = {
+    enable = true;
+    autoEnable = false;
+
+    rofi = {
+      enable = true;
+      flavor = "mocha";
+    };
+  };
 
   programs = {
     direnv = {
@@ -22,62 +31,16 @@
         hide_env_diff = true;
       };
     };
-    claude-code = {
-      enable = true;
-      package = unstable.claude-code;
-      settings = {
-        theme = "dark";
-        model = "opus";
-        spinnerVerbs = {
-          mode = "replace";
-          verbs = [
-            "Burning down old-growth forest"
-            "10x-ing carbon emissions"
-          ];
-        };
-        sandbox = {
-          filesystem = {
-            disabled = true;
-          };
-        };
-        enabledPlugins = {
-          "gopls-lsp@claude-plugins-official" = true;
-        };
-        permissions = {
-          disableAutoMode = "disable";
-          allow = [
-            "Bash(git diff:*)"
-          ];
-          deny = [
-            "WebFetch"
-            "Read(./.env)"
-          ];
-        };
-        hooks = {
-          PostToolUse = [
-            {
-              hooks = [
-                {
-                  command = "[ -n \"$NVIM\" ] && nvim --server $NVIM --remote-expr 'execute(\"checktime\")'";
-                  type = "command";
-                }
-              ];
-              matcher = "Edit|MultiEdit|Write";
-            }
-          ];
-        };
-      };
-    };
 
-    ghostty = {
+    eza = {
       enable = true;
+      git = true;
       enableZshIntegration = true;
-      installVimSyntax = true;
-      settings = {
-        background-opacity = 0.8;
-        maximize = true;
-        window-decoration = false;
-      };
+      icons = "auto";
+      extraOptions = [
+        "--group-directories-first"
+        "--header"
+      ];
     };
 
     ripgrep = {
@@ -103,15 +66,17 @@
       ];
     };
 
-    eza = {
+    rofi = {
       enable = true;
-      git = true;
-      enableZshIntegration = true;
-      icons = "auto";
-      extraOptions = [
-        "--group-directories-first"
-        "--header"
-      ];
+      extraConfig = {
+        modi = "drun";
+        show-icons = true;
+        drun-display-format = "{icon} {name}";
+        disable-history = false;
+        hide-scrollbar = true;
+        display-drun = "❯ ";
+        sidebar-mode = true;
+      };
     };
 
     starship = {

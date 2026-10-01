@@ -3,7 +3,7 @@ version: '3'
 vars:
   HOSTNAME:
     sh: hostname
-  ARGS: "--sudo --upgrade --flake .#{{ .HOSTNAME }}"
+  ARGS: "--sudo --flake .#{{ .HOSTNAME }}"
   VERBOSE:
     sh: '[[ "$LOG_LEVEL" == "debug" ]] && echo "-v" || true'
 
@@ -16,6 +16,10 @@ tasks:
     cmds:
       - nixos-rebuild dry-build {{ .ARGS }} -v {{ .CLI_ARGS }}
 
+  switch:
+    cmds:
+      - nixos-rebuild switch {{ .ARGS }} {{ .VERBOSE }} {{ .CLI_ARGS }}
+
   update:
     cmds:
       - sudo nix flake update {{ .VERBOSE }}
@@ -24,7 +28,7 @@ tasks:
     deps:
       - update
     cmds:
-      - nixos-rebuild switch {{ .ARGS }} {{ .VERBOSE }} {{ .CLI_ARGS }}
+      - task: switch
 
   clean:
     cmds:
@@ -38,7 +42,7 @@ tasks:
     cmds:
       - sudo fwupdmgr refresh --force
       - sudo fwupdmgr get-updates
-      - sudo fwupdmgr update
+      - sudo fwupdmgr update --no-unreported-check
 
   # Refresh the whole kernel pin table that modules/nixos/core/kernel.nix reads.
   # Run periodically: each series is pinned to the newest nixpkgs revision that

@@ -1,5 +1,16 @@
 { pkgs, lib, ... }:
 {
+  autoCmd = [
+    {
+      event = [ "BufWritePre" ];
+      pattern = [ "*.templ" ];
+      callback.__raw = ''
+        function()
+          vim.lsp.buf.format({ async = false })
+        end
+      '';
+    }
+  ];
   extraPackages = with pkgs; [
     gopls
     golangci-lint-langserver
@@ -10,6 +21,7 @@
     templ
     htmx-lsp
     tree-sitter
+    quickshell
   ];
   plugins = {
     lsp = {
@@ -26,6 +38,7 @@
         bashls.enable = lib.mkDefault true;
         buf_ls.enable = lib.mkDefault true;
         clangd.enable = lib.mkDefault true;
+        qmlls.enable = lib.mkDefault true;
         lua_ls = {
           enable = lib.mkDefault true;
           settings.telemetry.enable = false;

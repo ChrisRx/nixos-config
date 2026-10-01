@@ -11,6 +11,18 @@
         "nix-command"
         "flakes"
       ];
+      trusted-substituters = [
+        "https://cache.nixos.org/"
+        "https://noctalia.cachix.org"
+        # Serves the hyprland input pinned in ../../../flake.nix, whose
+        # nixConfig adds it as an actual substituter. Listed here so the daemon
+        # permits it; without both halves the compositor builds from source.
+        "https://hyprland.cachix.org"
+      ];
+      trusted-users = [
+        "root"
+        "chris"
+      ];
       warn-dirty = false;
     };
   };
@@ -18,6 +30,7 @@
   environment.systemPackages = with pkgs; [
     alacritty
     kitty
+    ghostty
 
     gcc
     pkg-config

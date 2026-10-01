@@ -1,11 +1,14 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
-let cfg = config.gnome;
-in {
-  options.gnome = {
-    enable = lib.mkEnableOption "Enable gnome desktop environment";
-  };
-
+let
+  cfg = config.desktop.gnome;
+in
+{
   config = lib.mkIf cfg.enable {
     services.displayManager.gdm.enable = true;
     services.desktopManager.gnome.enable = true;
@@ -32,13 +35,15 @@ in {
       simple-scan
     ];
 
-    programs.dconf.profiles.user.databases = [{
-      lockAll = true; # prevents overriding
-      settings = {
-        "org/gnome/desktop/input-sources" = {
-          xkb-options = [ "caps:ctrl_modifier" ];
+    programs.dconf.profiles.user.databases = [
+      {
+        lockAll = true; # prevents overriding
+        settings = {
+          "org/gnome/desktop/input-sources" = {
+            xkb-options = [ "caps:ctrl_modifier" ];
+          };
         };
-      };
-    }];
+      }
+    ];
   };
 }

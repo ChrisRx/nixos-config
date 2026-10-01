@@ -16,7 +16,7 @@ in
     ./programs.nix
     ./system.nix
     ./user.nix
-    ../gnome
+    ../../desktop
     ../nvidia
     ../steam
   ];

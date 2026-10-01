@@ -24,6 +24,15 @@
     clipboard = "unnamedplus";
     timeoutlen = 400;
     undofile = true;
+
+    # [ver:3,hor:6] lines moved per mouse-wheel tick. The compositor's
+    # input.touchpad.scroll_factor cannot fix scrolling in here: ghostty
+    # converts touchpad scroll into discrete wheel ticks, and neovim then
+    # multiplied each tick by 3 lines, so it stayed ~3x faster than every
+    # other window. This is the only knob on that multiplier.
+    #
+    # To try other values without a rebuild: :set mousescroll=ver:2,hor:4
+    mousescroll = "ver:1,hor:2";
   };
 
   extraConfigLuaPre = ''
