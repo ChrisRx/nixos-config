@@ -53,6 +53,11 @@ let
   # Hyprspace = inputs.Hyprspace.packages.${pkgs.stdenv.hostPlatform.system}.Hyprspace;
   gloview = inputs.gloview.packages.${pkgs.stdenv.hostPlatform.system}.gloview;
 
+  # Where ../wallpapers ends up in $HOME. Every noctalia wallpaper path has to
+  # be absolute by the time it reaches config.toml; see the home.file entry
+  # below for why it is this and not a store path.
+  wallpaperDir = "${config.home.homeDirectory}/.config/wallpapers";
+
   # True only when this machine has a mains supply *and* it is unplugged.
   #
   # The "and" matters: a desktop has no Mains power_supply device at all, and
@@ -129,6 +134,29 @@ in
     # ~/.config/hypr/plugins/ entry moves the store path back onto the nix
     # side, where a plugin rebuild just repoints the symlink.
     xdg.configFile."hypr/plugins/libgloview.so".source = "${gloview}/lib/libgloview.so";
+
+    # ../wallpapers, linked into $HOME rather than interpolated into
+    # programs.noctalia.settings as a store path.
+    #
+    # Noctalia resolves wallpaper paths at runtime, not at build time: a
+    # relative path in config.toml goes through std::filesystem::absolute(),
+    # which prepends the shell's own CWD ($HOME under uwsm), so "../wallpapers"
+    # would look for /home/wallpapers. Absolute is the only spelling that works,
+    # and "${../wallpapers}" would satisfy that — but it points the picker at a
+    # read-only store directory, so adding or removing an image means a rebuild.
+    # (Favourites and the last-selected wallpaper are unaffected either way:
+    # those live in $XDG_STATE_HOME/noctalia, not in the config.toml below.)
+    #
+    # `recursive` is what makes this mutable: without it home-manager symlinks
+    # the directory itself and ~/.config/wallpapers *is* the store path again.
+    # With it, each image is linked individually into a real directory, so
+    # anything dropped in alongside them is picked up with no rebuild. The
+    # linked images stay read-only, and are restored on the next switch if
+    # removed by hand.
+    home.file.".config/wallpapers" = {
+      source = ../wallpapers;
+      recursive = true;
+    };
 
     gtk = {
       gtk4 = {
@@ -318,14 +346,11 @@ in
             "bluetooth"
             "network"
             "volume"
+            "brightness"
             "battery"
             "session"
           ];
 
-          # One shared capsule around the three system monitors, so they read as
-          # a single block instead of three separate pills. `members` are widget
-          # ids, and the whole array is replaced wholesale by a monitor override
-          # or a runtime edit rather than merged key by key.
           capsule_group = [
             {
               id = "g1";
@@ -349,7 +374,7 @@ in
 
         lockscreen = {
           blur_intensity = 0.0;
-          wallpaper = "../wallpapers/bg.jpg";
+          # wallpaper = "${wallpaperDir}/bg.jpg";
         };
 
         shell = {
@@ -367,10 +392,10 @@ in
         };
 
         wallpaper = {
-          enable = true;
-          directory = "../wallpapers/";
+          enabled = true;
+          directory = wallpaperDir;
           fill_mode = "crop";
-          default.path = "../wallpapers/bg.jpg";
+          default.path = "${wallpaperDir}/bg.jpg";
         };
 
         plugins = {
