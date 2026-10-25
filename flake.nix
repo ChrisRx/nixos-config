@@ -12,30 +12,51 @@
     nixvim.url = "github:nix-community/nixvim/nixos-26.05";
     noctalia.url = "github:noctalia-dev/noctalia/cachix";
     catppuccin.url = "github:catppuccin/nix";
-    # A hyprland plugin loads only into the exact compositor build it was
-    # compiled against — PLUGIN_INIT compares the two commit hashes and bails
-    # on a mismatch — so both sides have to name this same input. See
-    # `programs.hyprland.package` in ./modules/desktop/hyprland/nixos.nix and
-    # `wayland.windowManager.hyprland.package` in its home.nix; changing this
-    # url without those is what produces a plugin that silently never loads.
-    hyprland.url = "github:hyprwm/Hyprland/v0.56.0";
+    # The compositor itself comes from nixpkgs-unstable, not a flake input. A
+    # hyprland plugin loads only into the exact compositor build it was
+    # compiled against (PLUGIN_INIT compares the two commit hashes and bails on
+    # a mismatch), so the plugins below are source only and built in-tree
+    # against `unstable.hyprland`. See `programs.hyprland.package` in
+    # ./modules/desktop/hyprland/nixos.nix and `hyprlandPkg` in its home.nix.
+    #
+    # Upstream gloview does ship a flake, but its package builds against its
+    # own patched compositor. Only the source is used, by
+    # ./modules/desktop/hyprland/gloview.nix.
     gloview = {
       url = "github:fedsfarm/gloview";
-      inputs.hyprland.follows = "hyprland";
+      flake = false;
+    };
+    # Source only: upstream ships no flake. Built by
+    # ./modules/desktop/hyprland/hypr-kinetic-scroll.nix against the same
+    # compositor.
+    hypr-kinetic-scroll = {
+      url = "github:savonovv/hypr-kinetic-scroll";
+      flake = false;
+    };
+    # Source only, same as above: no flake upstream. Built by
+    # ./modules/desktop/hyprland/hypr3d.nix against the compositor's dev
+    # output, which is exactly the headersRoot layout its CMakeLists wants.
+    # Jolt is vendored in-tree rather than submoduled, so the plain fetch is
+    # the whole source.
+    #
+    # Pinned to a rev, not a branch, because the five patches in
+    # ./modules/desktop/hyprland/hypr3d.nix are written against this exact
+    # tree and `git apply` is not fuzzy about it — upstream is pre-release and
+    # rewrites the files they touch, so letting `nix flake update` carry this
+    # input forward is what breaks the build. Moving it is therefore a manual
+    # step: bump the rev here, rebuild, and rebase whichever patches upstream
+    # has since absorbed or invalidated.
+    Hypr3D = {
+      url = "github:samine825/Hypr3D/7285e25cd68ee45139a4d78a83c07a44b5aba2c8";
+      flake = false;
     };
   };
-  # hyprland's cache is what keeps the `hyprland` input above from being a
-  # local build of the compositor and its whole hypr* dependency tree (~15
-  # derivations). Without it the first rebuild after the pin moves compiles all
-  # of them.
   nixConfig = {
     extra-substituters = [
       "https://noctalia.cachix.org"
-      "https://hyprland.cachix.org"
     ];
     extra-trusted-public-keys = [
       "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
-      "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
     ];
   };
   outputs =

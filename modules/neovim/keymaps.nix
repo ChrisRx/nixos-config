@@ -84,7 +84,7 @@
         "t"
       ];
       key = "<C-h>";
-      action = "<C-\\><C-n>:TmuxNavigateLeft<cr>";
+      action = "<cmd>TmuxNavigateLeft<cr>";
       options = {
         noremap = true;
         silent = true;
@@ -95,7 +95,7 @@
         "t"
       ];
       key = "<C-j>";
-      action = "<C-\\><C-n>:TmuxNavigateDown<cr>";
+      action = "<cmd>TmuxNavigateDown<cr>";
       options = {
         noremap = true;
         silent = true;
@@ -106,7 +106,7 @@
         "t"
       ];
       key = "<C-k>";
-      action = "<C-\\><C-n>:TmuxNavigateUp<cr>";
+      action = "<cmd>TmuxNavigateUp<cr>";
       options = {
         noremap = true;
         silent = true;
@@ -117,7 +117,7 @@
         "t"
       ];
       key = "<C-l>";
-      action = "<C-\\><C-n>:TmuxNavigateRight<cr>";
+      action = "<cmd>TmuxNavigateRight<cr>";
       options = {
         noremap = true;
         silent = true;

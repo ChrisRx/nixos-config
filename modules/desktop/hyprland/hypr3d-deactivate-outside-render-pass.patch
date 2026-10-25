@@ -1,0 +1,88 @@
+diff --git a/src/main.cpp b/src/main.cpp
+index e3517fe..3c7ee9f 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -251,9 +251,15 @@ static int   g_fsStableCount  = 0;   // consecutive frames the box matched
+ // window to the monitor, so the live geometry is NOT the pre-FS box.
+ static std::unordered_map<std::uintptr_t, CBox> g_fsStableBoxes;
+ static bool  g_captureReleasePending = false;
++
++// Set from render.stage when the exit transition reaches zero; the frame pump
++// runs the teardown. See deactivate3D() and startFramePump() for why it cannot
++// happen where it is noticed.
++static bool  g_deactivatePending = false;
+ static constexpr float kFsAnimDuration = 0.6f;
+ 
+ static void pollFullscreen();
++static void deactivate3D();
+ static void startTo2D(const PHLWINDOW& window, bool captureRestoreBox = true);
+ 
+ // Windows that appear while the view is open spawn as floating panels of
+@@ -1076,6 +1082,18 @@ static void startFramePump() {
+                     return;
+                 }
+ 
++                // The exit teardown, deferred out of render.stage. This runs
++                // from the event loop, so by the time it unghosts and relayouts
++                // the frame that noticed the transition had ended is long
++                // finished. deactivate3D() stops this very timer -- safe,
++                // because CEventLoopManager::onTimerFire iterates a copy and
++                // `self` holds the last reference until the callback returns.
++                if (g_deactivatePending) {
++                    g_deactivatePending = false;
++                    deactivate3D();
++                    return;
++                }
++
+                 // 2D passthrough: no damage (Hyprland renders by its own
+                 // damage); the tick still polls the fullscreen state so the
+                 // exit transition can fire.
+@@ -2308,6 +2326,9 @@ static void onRenderPre(PHLMONITOR mon) {
+ 
+ // --- lifecycle --------------------------------------------------------------
+ 
++// Never call this from a render callback. It unghosts (a relayout), moves
++// focus, resets the cursor and destroys GL objects, none of which a half-built
++// frame survives -- see the deferral in onRenderStage().
+ static void deactivate3D() {
+     finishClientButton(0);
+     resetPointerGesture();
+@@ -2352,6 +2373,11 @@ static void deactivate3D() {
+ }
+ 
+ static void enter3D() {
++    // A toggle back on inside the one-iteration gap the exit teardown is
++    // deferred across: the pending teardown is no longer wanted, and running it
++    // after this would tear down the view that is being opened.
++    g_deactivatePending = false;
++
+     // Without this the render stage bails out immediately and the toggle does
+     // nothing at all.
+     g_active = true;
+@@ -3339,7 +3365,25 @@ static void onRenderStage(eRenderStage stage) {
+     const float dt = updateTransition();
+ 
+     if (g_transition <= 0.0f && g_transitionTarget <= 0.0f) {
+-        deactivate3D();
++        // Hand the teardown to the frame pump rather than running it here.
++        // This is RENDER_LAST_MOMENT, two statements ahead of the compositor's
++        // own endRender(), and deactivate3D() unghosts (a relayout), moves
++        // focus, resets the cursor and frees the snapshot framebuffers. Any of
++        // that can open a nested pass, whose endRender() resets
++        // m_renderData.pMonitor -- and the outer endRender() then dereferences
++        // it in CMonitor::useFP16() and takes the compositor down with SIGSEGV.
++        // It is the same hazard syncWorld() documents for capture and ghosting,
++        // which is why those run from render.pre.
++        //
++        // The pump ticks every 8 ms, but ask for the next event loop iteration:
++        // until the teardown runs, the windows are still ghosted and this
++        // function adds no pass element, so every frame in between draws an
++        // empty room.
++        g_deactivatePending = true;
++
++        if (g_framePump)
++            g_framePump->updateTimeout(std::chrono::milliseconds(0));
++
+         return;
+     }
+ 

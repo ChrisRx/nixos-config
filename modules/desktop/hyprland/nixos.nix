@@ -9,74 +9,13 @@
 let
   cfg = config.desktop.hyprland;
 
-  hyprland = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system};
-
-  # Upstream's flake ships share/wayland-sessions/hyprland-uwsm.desktop with a
-  # bare `Exec=uwsm`, and gdm-session-worker replaces the session PATH with its
-  # compiled-in default — gdm's own bin plus /usr/local/bin:/usr/bin:/bin:… —
-  # which on NixOS holds no uwsm. execvp then fails with ENOENT before uwsm can
-  # log a line, so the session dies in ~250ms and gdm reports only
-  # "Session never registered, failing"; no hyprland log is written at all.
-  #
-  # nixpkgs' own hyprland substitutes an absolute path for exactly this reason,
-  # which is why the nixpkgs 0.55.4 session worked and the flake's 0.56.0 one
-  # does not. These are those same two replacements, applied in a symlink farm
-  # rather than via overrideAttrs: changing the derivation would change its
-  # hash and cost a local compile of the compositor on every pin move, which is
-  # what the cachix substituter in ../../../flake.nix exists to avoid.
-  #
-  # The inherited attrs are what keep programs.hyprland working: it reads
-  # version off cfg.package for its systemd.setPath default,
-  # passthru.providedSessions for the sessionPackages assertion, and
-  # meta.mainProgram via lib.getExe for security.wrappers.Hyprland below.
-  #
-  # --replace-fail is load-bearing. If upstream fixes this, renames the entry or
-  # moves share/wayland-sessions, the rebuild fails here naming the offending
-  # line rather than silently regressing to a blank login screen.
-  #
-  # enableXWayland is read back off programs.hyprland rather than hardcoded, so
-  # it tracks xwayland.enable below; see the override note in `passthru` for why
-  # it has to be applied here and not left to the module. Reading the option
-  # while defining programs.hyprland.package is safe: xwayland does not itself
-  # depend on the package.
-  hyprlandBase = hyprland.hyprland.override {
-    enableXWayland = config.programs.hyprland.xwayland.enable;
-  };
-
-  hyprlandPkg = pkgs.symlinkJoin {
-    name = "hyprland-${hyprlandBase.version}-uwsm-session-path";
-
-    # hyprland is multi-output (out, man, dev) and its meta.outputsToInstall
-    # names "man", so both of the installed outputs have to be folded into the
-    # single-output farm — otherwise environment.systemPackages asks it for a
-    # `man` output it does not have, and the man pages would go missing anyway.
-    paths = map (o: hyprlandBase.${o}) hyprlandBase.meta.outputsToInstall;
-    inherit (hyprlandBase) version;
-    meta = hyprlandBase.meta // {
-      outputsToInstall = [ "out" ];
-    };
-
-    passthru = (hyprlandBase.passthru or { }) // {
-      # `programs.hyprland.package` has an apply that runs the whole value
-      # through genFinalPackage (nixos/modules/programs/wayland/lib.nix), which
-      # reads lib.functionArgs off this attr to work out what it may pass, and
-      # errors outright if the attr is missing. A symlink farm has no override
-      # of its own, so enableXWayland is applied to hyprlandBase above and this
-      # advertises no arguments, which makes genFinalPackage find nothing to
-      # pass and hand the farm back untouched. Forwarding hyprlandBase.override
-      # instead would let it override straight past the farm and lose the
-      # session fix.
-      override = _: hyprlandPkg;
-    };
-
-    postBuild = ''
-      entry=$out/share/wayland-sessions/hyprland-uwsm.desktop
-      rm "$entry"
-      substitute ${hyprlandBase}/share/wayland-sessions/hyprland-uwsm.desktop "$entry" \
-        --replace-fail "Exec=uwsm " "Exec=${lib.getExe pkgs.uwsm} " \
-        --replace-fail "TryExec=uwsm" "TryExec=${lib.getExe pkgs.uwsm}"
-    '';
-  };
+  # Compositor and portal both come from nixpkgs-unstable, the same tree
+  # ./home.nix builds the plugins against through its `unstable` arg, since a
+  # plugin only loads into the exact compositor build it was compiled for.
+  # NixOS evaluation has no `unstable` module arg, so this reads the input's
+  # legacyPackages directly. Neither package is unfree, so home-manager's
+  # allowUnfree instance resolves to the same derivations.
+  unstable = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
 in
 {
   config = lib.mkIf cfg.enable {
@@ -84,21 +23,72 @@ in
       enable = true;
       withUWSM = true;
       xwayland.enable = true;
-      # Use the flake inputs hyprland package so that plugins build and load
-      # correctly. The symlink farm above only shadows the uwsm session entry;
-      # the compositor binary it points at is the flake build byte for byte, so
-      # the commit hash PLUGIN_INIT compares is unchanged.
-      package = hyprlandPkg;
-      # The portal is pinned alongside it deliberately: it is versioned in
-      # lockstep with the compositor upstream, and leaving it on nixpkgs' build
-      # pairs a 0.55.4 portal with a 0.56.0 session.
-      portalPackage = hyprland.xdg-desktop-portal-hyprland;
+      # nixpkgs' hyprland writes an absolute uwsm path into its
+      # hyprland-uwsm.desktop, so gdm's stripped session PATH needs no
+      # workaround here.
+      package = unstable.hyprland;
+      portalPackage = unstable.xdg-desktop-portal-hyprland;
     };
+    # This also sets security.pam.services.login.enableGnomeKeyring, which is
+    # the definition that matters: gdm-password is `auth substack login`, and
+    # the gdm-fingerprint stack gates its own pam_gnome_keyring rule on
+    # `login.enableGnomeKeyring`. There is no `gdm` pam service to set it on —
+    # the gdm module defines gdm-launch-environment, gdm-password,
+    # gdm-autologin and gdm-fingerprint and nothing else, so the
+    # security.pam.services.gdm definition that used to sit here only created
+    # an /etc/pam.d/gdm that gdm never opens.
     services.gnome.gnome-keyring.enable = true;
     security.pam.services.hyprland.enableGnomeKeyring = true;
-    # TODO: Figure out why this isn't working. It is still asking to unlock the
-    # keyring after login.
-    security.pam.services.gdm.enableGnomeKeyring = true; # load gnome-keyring at startup
+
+    # A fingerprint login cannot unlock the login keyring, and no pam setting
+    # changes that: the keyring is encrypted with the login password, and
+    # pam_gnome_keyring unlocks it with the token pam collected during auth,
+    # which fingerprint auth never produces. gdm-fingerprint's one escape hatch
+    # is pam_gdm.so, which reads the `user:cryptsetup` key systemd-cryptsetup
+    # caches when a luks passphrase is typed at boot; root here is plain ext4,
+    # so it finds nothing and falls through. Logging in by password unlocks the
+    # keyring as it always did.
+    #
+    # What the masks below change is only *when* the prompt arrives.
+    # gnome-keyring's two autostart entries have their OnlyShowIn commented out
+    # in nixpkgs, so they are not gnome-restricted, and uwsm pulls in
+    # xdg-desktop-autostart.target as soon as the compositor is up:
+    #
+    #   09:57:45  Reached target XDG Autostart for session of hyprland.desktop
+    #   09:57:45  Starting Certificate and Key Storage...     (--components=pkcs11)
+    #   09:57:45  Starting Secret Storage Service...          (--components=secrets)
+    #   09:57:46  gcr-prompter: starting password prompt
+    #
+    # Initializing those components opens the locked keyring, so the prompt
+    # lands a second into the session and reads as part of logging in. The gnome
+    # session never ran them at all: both entries carry the legacy
+    # X-GNOME-Autostart-Phase key, which gnome-session now rejects outright
+    # ("gnome-session no longer manages session services"), leaving
+    # org.freedesktop.secrets to be d-bus activated later on first real demand.
+    # Masking reproduces that, and activation still works because gnome-keyring
+    # ships the .service files for both org.freedesktop.secrets and
+    # org.gnome.keyring.
+    #
+    # /etc/systemd/user, where `enable = false` writes its /dev/null symlink,
+    # outranks $XDG_RUNTIME_DIR/systemd/generator in the user unit load path, so
+    # the mask wins over the generator's own .wants link. The \x2d escapes are
+    # what systemd-xdg-autostart-generator names these: see
+    # /run/user/$(id -u)/systemd/generator*/.
+    systemd.user.units."app-gnome\\x2dkeyring\\x2dsecrets@autostart.service".enable = false;
+    systemd.user.units."app-gnome\\x2dkeyring\\x2dpkcs11@autostart.service".enable = false;
+
+    # The gnome desktop module turns these on with mkDefault, and on a host
+    # that also runs this session they leak into it. Nautilus d-bus activates
+    # localsearch on first launch, which then crawls $HOME for the rest of the
+    # session (~470M resident, 1.1G peak), and goa-daemon comes up alongside it.
+    # ibus runs from login as the input method. None of it is used here, and
+    # since these are system-wide the gnome session on this host loses them
+    # too: nautilus search falls back to its unindexed engine and the overview
+    # no longer finds files.
+    services.gnome.localsearch.enable = false;
+    services.gnome.gnome-online-accounts.enable = false;
+    i18n.inputMethod.enable = false;
+
     environment.sessionVariables.NIXOS_OZONE_WL = "1";
   };
 }

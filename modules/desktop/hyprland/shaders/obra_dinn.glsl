@@ -23,8 +23,8 @@ void main() {
     
     // Map screen coordinates to the 4x4 grid matrix
     // Adjust gl_FragCoord.xy scaling if you want coarser/chunkier pixels
-    int x = int(mod(gl_FragCoord.x, 12.0));
-    int y = int(mod(gl_FragCoord.y, 12.0));
+    int x = int(mod(gl_FragCoord.x, 8.0));
+    int y = int(mod(gl_FragCoord.y, 8.0));
     int index = x + y * 2;
     
     // Calculate the threshold based on the Bayer matrix value (0 to 15 mapped to 0-1 range)

@@ -1,0 +1,70 @@
+diff --git a/src/main.cpp b/src/main.cpp
+index e974da7..6f43bc9 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -284,6 +284,12 @@ static constexpr float kSpawnEpsilon   = 0.02f;
+ static constexpr float kSpawnStep      = 0.08f;
+ static constexpr int   kSpawnStepLimit = 48;
+ 
++// Gap between a freshly spawned quad's bottom edge and the floor plane (see
++// syncWorld). Only has to beat the floor's own -0.02 offset and the grid
++// lines drawn on top of it, so the bottom row of pixels cannot z-fight with
++// the platform it is standing on.
++static constexpr float kFloorClearance = 0.05f;
++
+ // A normal damage cycle stops when nothing else in Hyprland changes. 3D mode is
+ // itself an animated scene, so keep a small render pump alive while it is open.
+ // 8 ms targets roughly 120 Hz without making the event loop spin continuously.
+@@ -1380,6 +1386,8 @@ static void syncWorld(const PHLMONITOR& mon, float dt) {
+         // Seed pose: existing entities own their world position and rotation.
+         // NEW windows spawn straight in front of the camera at a fixed read
+         // distance, facing it.
++        const bool IS_NEW = g_world.find(info.id) == nullptr;
++
+         if (const auto* EXISTING = g_world.find(info.id)) {
+             entity.center = EXISTING->center;
+             entity.yaw = EXISTING->yaw;
+@@ -1455,6 +1463,43 @@ static void syncWorld(const PHLMONITOR& mon, float dt) {
+         entity.width  = World3D::toWorld(BOX.w) * entity.spawnScale;
+         entity.height = World3D::toWorld(BOX.h) * entity.spawnScale;
+ 
++        // A new quad never spawns through the floor. It is centred on the eye,
++        // and the grid platform is an opaque 40x40 quad at world zero drawn
++        // BEFORE the windows with depth writes on, so every part of a quad
++        // below y = 0 is depth-rejected: a window taller than twice the eye
++        // height loses its bottom, and because only the bottom goes the
++        // content that remains reads as the wrong aspect ratio rather than as
++        // a crop. At the default window_scale that is anything over 648
++        // logical px tall -- i.e. most real windows.
++        //
++        // Raising the centre is the fix rather than a spawn height, because
++        // the eye is wherever the player left it: standing on the floor is
++        // the normal case in walking mode, and in flying mode Ctrl descends.
++        // A config value can only place the FIRST pose, so the crop came back
++        // the moment anything spawned after a descent. The clamp has to live
++        // where the pose is decided.
++        //
++        // New entities only. An existing one owns its pose -- dragging a
++        // window down to the floor is a thing the player is allowed to do,
++        // and re-clamping every frame would fight the drag.
++        //
++        // Runs after the de-collision step above and does not undo it: that
++        // step separates along the view axis, which for any normal look is
++        // nearly horizontal, so raising y leaves the centres apart in x/z.
++        // Two quads of equal height clamped while looking straight DOWN are
++        // the exception -- the step is vertical there, the clamp pins both to
++        // the same height, and they coincide again. That look was already
++        // degenerate for the de-collision before this clamp existed, and
++        // fixing it properly means giving the spawn a real layout rather than
++        // one point in front of the camera.
++        if (IS_NEW && g_cfgGrid) {
++            const float MIN_Y =
++                Camera::kFloorY + kFloorClearance + entity.height * 0.5f;
++
++            if (entity.center.y < MIN_Y)
++                entity.center.y = MIN_Y;
++        }
++
+         // Fullscreen transition: the animation owns this quad's size, and it
+         // MUST be applied here -- the draw list below is built from these
+         // values, so overriding later in applyFullscreenAnimation only

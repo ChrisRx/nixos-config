@@ -1,0 +1,128 @@
+diff --git a/kinetic.cpp b/kinetic.cpp
+index 38c2ff6..9377c4a 100644
+--- a/kinetic.cpp
++++ b/kinetic.cpp
+@@ -211,6 +211,61 @@ void KineticState::onAxis(IPointer::SAxisEvent& e) {
+     wl_event_source_timer_update(m_decayTimer, 0);
+ }
+ 
++// True for the one event per gesture that CSeatManager turns into
++// wl_pointer.axis_stop, when stop_on_lift asks for that event to be withheld
++// from the client. Cancelling it in the axis callback is the only way to stop a
++// client's own kinetic scrolling: GTK, Chromium and Firefox all start their
++// deceleration from axis_stop, so without it they have no lift to react to and
++// the content stays exactly where the fingers left it.
++bool KineticState::shouldSuppressScrollEnd(const IPointer::SAxisEvent& e) const {
++    if (!getKineticConfigInt("enabled", 1) || !getKineticConfigInt("stop_on_lift", 0))
++        return false;
++
++    // Vertical only, and deliberately so. A browser's two-finger back/forward
++    // swipe is an overscroll gesture it commits, or snaps back, when the
++    // *horizontal* scroll sequence ends; withholding that axis_stop leaves the
++    // swipe hanging with nothing to resolve it. Nothing is lost by letting it
++    // through: libinput only emits a stop on the axes that were actually
++    // scrolling, and CSeatManager::sendPointerAxis sends axis_stop per axis, so
++    // dropping the vertical one still kills a client's vertical fling.
++    if (e.axis != WL_POINTER_AXIS_VERTICAL_SCROLL)
++        return false;
++
++    // libinput ends a two-finger scroll with a zero-delta event on the same
++    // axis, and CSeatManager::sendPointerAxis sends axis_stop for exactly that
++    // (`else if (value == 0)`) on any source but a wheel.
++    if (e.delta != 0.0 || e.deltaDiscrete != 0)
++        return false;
++
++    // Real wheels take the value120 branch there instead and never produce an
++    // axis_stop, but gate on the source anyway rather than relying on that.
++    const bool touchpadSource = (e.source == WL_POINTER_AXIS_SOURCE_FINGER || e.source == WL_POINTER_AXIS_SOURCE_CONTINUOUS);
++    const bool smoothMouse    = (e.mouse && e.deltaDiscrete == 0);
++    if (!touchpadSource && !smoothMouse)
++        return false;
++
++    // disabled_classes and the lua per-app rules stay in force, so a client
++    // that needs its scroll sequences terminated properly can be excluded.
++    // disable_in_browser is deliberately *not* consulted: it exists to leave a
++    // browser's native momentum alone, which is the opposite of what this does.
++    const auto PWIN = g_pInputManager ? g_pInputManager->m_lastMouseFocus.lock() : nullptr;
++    if (PWIN) {
++        if (classInList(PWIN->m_class, getKineticConfigString("disabled_classes", "")))
++            return false;
++
++        if (!shouldProcessForWindow(PWIN->m_class))
++            return false;
++    }
++
++    if (getKineticConfigInt("debug", 0)) {
++        std::ofstream log("/tmp/hypr-kinetic-scroll.log", std::ios::app);
++        if (log.is_open())
++            log << "[hypr-kinetic-scroll] suppressing scroll end (stop_on_lift) self=" << this << "\n";
++    }
++
++    return true;
++}
++
+ void KineticState::onPointerFrame() {
+     if (m_axisEventInFrame) {
+         m_axisEventInFrame = false;
+@@ -278,6 +333,14 @@ void KineticState::beginDecay(const char* reason) {
+     if (!m_tracking)
+         return;
+ 
++    // The plugin's own momentum is the other half of what has to go for a lift
++    // to stop dead. The lift is still detected (onPointerFrame listens on the
++    // device, not on the cancelled bus event), so this is where it is dropped.
++    if (getKineticConfigInt("stop_on_lift", 0)) {
++        stopKinetic("stopOnLift");
++        return;
++    }
++
+     if (getKineticConfigInt("debug", 0)) {
+         std::ofstream log("/tmp/hypr-kinetic-scroll.log", std::ios::app);
+         if (log.is_open())
+diff --git a/kinetic.hpp b/kinetic.hpp
+index 15e060f..ef98177 100644
+--- a/kinetic.hpp
++++ b/kinetic.hpp
+@@ -11,6 +11,7 @@ class KineticState {
+     ~KineticState();
+ 
+     void onAxis(IPointer::SAxisEvent& e);
++    bool shouldSuppressScrollEnd(const IPointer::SAxisEvent& e) const;
+     void onPointerFrame();
+     void onTouchpadContact();
+     void stopKinetic(const char* reason = nullptr);
+diff --git a/main.cpp b/main.cpp
+index 6d66a02..41d4f38 100644
+--- a/main.cpp
++++ b/main.cpp
+@@ -22,13 +22,19 @@ static Hyprutils::Signal::CHyprSignalListener g_pWindowCallback;
+ static Hyprutils::Signal::CHyprSignalListener g_pConfigReloadCallback;
+ static std::vector<Hyprutils::Signal::CHyprSignalListener> g_pTouchpadCallbacks;
+ 
+-static void onMouseAxis(const IPointer::SAxisEvent& e, Event::SCallbackInfo& /*info*/) {
++static void onMouseAxis(const IPointer::SAxisEvent& e, Event::SCallbackInfo& info) {
+     if (!g_pKineticState)
+         return;
+ 
+     auto event = e;
+     g_pKineticState->onAxis(event);
+-    // Don't cancel - let the original scroll event pass through to the app
++
++    // Scroll events themselves still pass through to the app untouched. The one
++    // exception is the end-of-gesture event under stop_on_lift: CInputManager
++    // returns early on a cancelled callback, so the client never sees the
++    // axis_stop it would have started its own momentum from.
++    if (g_pKineticState->shouldSuppressScrollEnd(e))
++        info.cancelled = true;
+ }
+ 
+ static void onMouseButton(const IPointer::SButtonEvent& e, Event::SCallbackInfo& /*info*/) {
+@@ -158,6 +164,8 @@ static void registerConfigValues() {
+     HyprlandAPI::addConfigValueV2(PHANDLE, makeShared<CStringValue>("plugin:kinetic-scroll:disabled_classes", "Comma or space separated classes with kinetic scrolling disabled", ""));
+     HyprlandAPI::addConfigValueV2(PHANDLE, makeShared<CIntValue>("plugin:kinetic-scroll:debug", "Enable kinetic scroll debug logging", 0));
+     HyprlandAPI::addConfigValueV2(PHANDLE, makeShared<CIntValue>("plugin:kinetic-scroll:stop_on_click", "Stop inertia on mouse click", 0));
++    HyprlandAPI::addConfigValueV2(
++        PHANDLE, makeShared<CIntValue>("plugin:kinetic-scroll:stop_on_lift", "Stop dead on finger lift, withholding the scroll-end event clients fling from", 0));
+     HyprlandAPI::addConfigValueV2(PHANDLE, makeShared<CIntValue>("plugin:kinetic-scroll:stop_on_focus", "Stop inertia on focus change", 0));
+ }
+ 

@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, unstable, ... }:
 {
   imports = [
     ./alacritty.nix
@@ -16,6 +16,25 @@
     rofi = {
       enable = true;
       flavor = "mocha";
+    };
+  };
+
+  programs.obs-studio = {
+    enable = true;
+    plugins = with pkgs.obs-studio-plugins; [
+      wlrobs
+      obs-backgroundremoval
+      obs-pipewire-audio-capture
+    ];
+  };
+
+  programs.vivaldi = {
+    enable = true;
+    package = unstable.vivaldi.override {
+      proprietaryCodecs = true;
+      enableWidevine = true;
+      vivaldi-ffmpeg-codecs = unstable.vivaldi-ffmpeg-codecs;
+      commandLineArgs = [ "--ozone-platform-hint=auto" ];
     };
   };
 

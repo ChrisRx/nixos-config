@@ -47,7 +47,7 @@
       setw -g monitor-activity off
 
       # Reload configuration
-      bind r source-file ~/.tmux.conf \; display-message "tmux config reloaded"
+      bind r source-file ~/.config/tmux/tmux.conf \; display-message "tmux config reloaded"
 
 
       # ==================== Display ====================

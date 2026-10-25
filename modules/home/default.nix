@@ -95,6 +95,8 @@ in
         qmk
         qmk-udev-rules
         keychron-udev-rules
+        krita
+        libresprite
       ]
       ++ lib.lists.optionals (cfg.fonts.enable || cfg.all.enable) [
         nerd-fonts."m+"

@@ -24,9 +24,11 @@
       };
       enabledPlugins = {
         "gopls-lsp@claude-plugins-official" = true;
+        "frontend-design@claude-plugins-official" = true;
+        "code-simplifier@claude-plugins-official" = true;
       };
       permissions = {
-        disableAutoMode = "disable";
+        # disableAutoMode = "disable";
         allow = [
           "Bash(git diff:*)"
         ];
