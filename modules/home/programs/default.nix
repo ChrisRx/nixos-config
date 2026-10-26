@@ -5,6 +5,7 @@
     ./claude-code.nix
     ./ghostty.nix
     ./git.nix
+    ./rofi.nix
     ./tmux.nix
     ./zsh.nix
   ];
@@ -12,11 +13,6 @@
   catppuccin = {
     enable = true;
     autoEnable = false;
-
-    rofi = {
-      enable = true;
-      flavor = "mocha";
-    };
   };
 
   programs.obs-studio = {
@@ -83,19 +79,6 @@
         "--colors=path:fg:yellow"
         "--colors=match:fg:125"
       ];
-    };
-
-    rofi = {
-      enable = true;
-      extraConfig = {
-        modi = "drun";
-        show-icons = true;
-        drun-display-format = "{icon} {name}";
-        disable-history = false;
-        hide-scrollbar = true;
-        display-drun = "❯ ";
-        sidebar-mode = true;
-      };
     };
 
     starship = {

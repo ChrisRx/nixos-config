@@ -138,6 +138,14 @@
           key = "homeModules.unstableArg";
           _module.args.unstable = lib.mkDefault (mkUnstable pkgs.stdenv.hostPlatform.system);
         };
+
+      # catppuccin's home module, for homeModules.default and homeModules.rofi
+      # both. Upstream's is a bare function, which the module system cannot
+      # deduplicate, so importing it twice would declare its options twice.
+      catppuccinModule = {
+        key = "homeModules.catppuccin";
+        imports = [ inputs.catppuccin.homeModules.catppuccin ];
+      };
     in
     {
       nixosModules = {
@@ -263,6 +271,18 @@
           _module.args.flakeInputs = inputs;
         };
 
+        # Single programs from ./modules/home, for importers that do not want
+        # the whole of homeModules.default. Imported by path, so taking one of
+        # these alongside homeModules.default merges into the same module.
+        ghostty = ./modules/home/programs/ghostty.nix;
+
+        rofi = {
+          imports = [
+            ./modules/home/programs/rofi.nix
+            catppuccinModule
+          ];
+        };
+
         default =
           { pkgs, ... }:
           {
@@ -270,7 +290,7 @@
               ./modules/home
               self.homeModules.neovim
               self.homeModules.hyprland
-              inputs.catppuccin.homeModules.catppuccin
+              catppuccinModule
             ];
 
             # Passed as a module arg rather than a pkgs overlay so it applies
