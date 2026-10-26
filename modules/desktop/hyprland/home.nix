@@ -4,7 +4,11 @@
   lib,
   pkgs,
   unstable,
-  inputs,
+  # This repo's flake inputs, set by homeModules.hyprland in ../../../flake.nix.
+  # Not the usual `inputs`: a consumer flake that passes its own `inputs`
+  # through extraSpecialArgs would shadow a `_module.args.inputs`, and its
+  # inputs have no gloview or Hypr3D.
+  flakeInputs,
   ...
 }:
 
@@ -84,7 +88,7 @@ let
   # becomes "toggle", so it is worth getting right.
   dpms = action: "${hyprlandPkg}/bin/hyprctl dispatch 'hl.dsp.dpms({ action = \"${action}\" })'";
 
-  # Hyprspace = inputs.Hyprspace.packages.${pkgs.stdenv.hostPlatform.system}.Hyprspace;
+  # Hyprspace = flakeInputs.Hyprspace.packages.${pkgs.stdenv.hostPlatform.system}.Hyprspace;
 
   # All three plugins below are packaged in-tree from their input's source,
   # with `hyprlandPkg` handed in explicitly so each is compiled against the
@@ -94,13 +98,13 @@ let
   # publishes neither. See ./hypr-kinetic-scroll.nix.
   hypr-kinetic-scroll = pkgs.callPackage ./hypr-kinetic-scroll.nix {
     hyprland = hyprlandPkg;
-    src = inputs.hypr-kinetic-scroll;
+    src = flakeInputs.hypr-kinetic-scroll;
   };
 
   # Same arrangement, same reason. See ./hypr3d.nix.
   hypr3d = pkgs.callPackage ./hypr3d.nix {
     hyprland = hyprlandPkg;
-    src = inputs.Hypr3D;
+    src = flakeInputs.Hypr3D;
   };
 
   # Same arrangement, different reason: gloview does ship a flake, and
@@ -111,7 +115,7 @@ let
   # drags a second Hyprland in.
   gloview = pkgs.callPackage ./gloview.nix {
     hyprland = hyprlandPkg;
-    src = inputs.gloview;
+    src = flakeInputs.gloview;
   };
 
   # The 360-degree backdrop for hypr3d's room, wired up in ./plugins.lua under
@@ -222,15 +226,22 @@ let
   '';
 in
 {
-  # Unconditional: `imports` cannot be wrapped in `lib.mkIf`. The module only
-  # declares `programs.noctalia`, which stays disabled until the config below
-  # turns it on.
-  imports = [ inputs.noctalia.homeModules.default ];
+  # noctalia's home module is imported by homeModules.hyprland in
+  # ../../../flake.nix rather than here: `flakeInputs` is a `_module.args`
+  # value, and those cannot be used in `imports` without infinite recursion.
 
   config = lib.mkIf cfg.enable {
     # ./hyprland.lua starts the session's bar through this rather than calling
     # `noctalia` directly, so the wrapper has to be on PATH for it to find.
     home.packages = [ noctaliaSession ];
+
+    # uwsm sources this for every compositor it starts, before the session's
+    # units come up, so it reaches everything launched inside the session.
+    # Doubles ./nixos.nix's environment.sessionVariables on NixOS; standalone
+    # home-manager has nothing else to set it.
+    xdg.configFile."uwsm/env".text = ''
+      export NIXOS_OZONE_WL=1
+    '';
 
     wayland.windowManager.hyprland = {
       enable = true;

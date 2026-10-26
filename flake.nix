@@ -127,6 +127,17 @@
           };
           module = import ./modules/neovim;
         };
+
+      # `unstable` for the home modules that need it outside homeModules.default,
+      # which overrides it with a plain definition. Keyed so that importing
+      # several of those modules defines it once: the arg takes a single value,
+      # and two mkDefault definitions of it conflict.
+      unstableArg =
+        { pkgs, lib, ... }:
+        {
+          key = "homeModules.unstableArg";
+          _module.args.unstable = lib.mkDefault (mkUnstable pkgs.stdenv.hostPlatform.system);
+        };
     in
     {
       nixosModules = {
@@ -189,7 +200,6 @@
       homeModules = {
         neovim =
           {
-            pkgs,
             lib,
             unstable,
             ...
@@ -200,7 +210,10 @@
             # the whole option tree visible to importers: `programs.nixvim.*`
             # becomes a real submodule option here, so a consumer can override
             # anything under it. A pre-built package has no options to merge.
-            imports = [ inputs.nixvim.homeModules.nixvim ];
+            imports = [
+              inputs.nixvim.homeModules.nixvim
+              unstableArg
+            ];
 
             programs.nixvim = {
               enable = true;
@@ -225,11 +238,30 @@
               # not in scope for anything under ./modules/neovim.
               _module.args.unstable = unstable;
             };
-
-            # homeModules.default normally supplies this; the mkDefault keeps
-            # this module importable on its own, where nothing else defines it.
-            _module.args.unstable = lib.mkDefault (mkUnstable pkgs.stdenv.hostPlatform.system);
           };
+
+        # The desktop modules on their own, for standalone home-manager on a
+        # non-NixOS distro. Only the home halves come along: the compositor's
+        # session entry, PAM and GPU drivers are left to the host. Enable with
+        # `desktop.hyprland.enable = true`.
+        hyprland = {
+          # Without a key, importing this alongside homeModules.default (which
+          # pulls it in too) would declare noctalia's options twice.
+          key = "homeModules.hyprland";
+
+          imports = [
+            ./modules/desktop/home.nix
+            # Here rather than in ./modules/desktop/hyprland/home.nix: that
+            # file only sees inputs through `_module.args`, which `imports`
+            # cannot read.
+            inputs.noctalia.homeModules.default
+            unstableArg
+          ];
+
+          # Read by ./modules/desktop/hyprland/home.nix, which explains the
+          # name.
+          _module.args.flakeInputs = inputs;
+        };
 
         default =
           { pkgs, ... }:
@@ -237,6 +269,7 @@
             imports = [
               ./modules/home
               self.homeModules.neovim
+              self.homeModules.hyprland
               inputs.catppuccin.homeModules.catppuccin
             ];
 
