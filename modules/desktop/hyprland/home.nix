@@ -291,10 +291,29 @@ in
     # interpolated into it. Pointing the lua at a fixed
     # ~/.config/hypr/plugins/ entry moves the store path back onto the nix
     # side, where a plugin rebuild just repoints the symlink.
-    xdg.configFile."hypr/plugins/libgloview.so".source = "${gloview}/lib/libgloview.so";
-    xdg.configFile."hypr/plugins/libhypr-kinetic-scroll.so".source =
-      "${hypr-kinetic-scroll}/lib/libhypr-kinetic-scroll.so";
-    xdg.configFile."hypr/plugins/libhypr3d.so".source = "${hypr3d}/lib/libhypr3d.so";
+    #
+    # Each link is gated on its `desktop.hyprland.plugins.<name>.enable`, and
+    # nothing else references the derivation, so a disabled plugin is never
+    # built at all.
+    xdg.configFile."hypr/plugins/libgloview.so" = lib.mkIf cfg.plugins.gloview.enable {
+      source = "${gloview}/lib/libgloview.so";
+    };
+    xdg.configFile."hypr/plugins/libhypr-kinetic-scroll.so" =
+      lib.mkIf cfg.plugins.kineticScroll.enable
+        {
+          source = "${hypr-kinetic-scroll}/lib/libhypr-kinetic-scroll.so";
+        };
+    xdg.configFile."hypr/plugins/libhypr3d.so" = lib.mkIf cfg.plugins.hypr3d.enable {
+      source = "${hypr3d}/lib/libhypr3d.so";
+    };
+
+    # The same flags, handed to ./plugins.lua, which skips each disabled
+    # plugin's whole section. Always generated, never symlinked live: it has to
+    # agree with the .so links above, and those only change on a switch.
+    xdg.configFile."hypr/enabled_plugins.lua" = {
+      text = "return " + lib.generators.toLua { } (lib.mapAttrs (_: p: p.enable) cfg.plugins) + "\n";
+      onChange = reloadHyprland;
+    };
 
     # `world.panorama` is the same problem as the three .so paths above and gets
     # the same answer: ./plugins.lua names it, ./plugins.lua has no nix
@@ -309,7 +328,9 @@ in
     # mtime changes, so a different image is live on the next switch without a
     # reload. A path that does not exist is not silently ignored: it raises an
     # on-screen "[hypr3d] panorama file not found" notification, once per path.
-    xdg.configFile."hypr/panorama.jpg".source = hypr3dPanorama;
+    xdg.configFile."hypr/panorama.jpg" = lib.mkIf cfg.plugins.hypr3d.enable {
+      source = hypr3dPanorama;
+    };
 
     # ../wallpapers, linked into $HOME rather than interpolated into
     # programs.noctalia.settings as a store path.

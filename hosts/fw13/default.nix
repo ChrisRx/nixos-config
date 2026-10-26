@@ -13,6 +13,11 @@
   desktop.hyprland = {
     enable = true;
     mutableConfig = true;
+    plugins = {
+      gloview.enable = true;
+      kineticScroll.enable = true;
+      hypr3d.enable = true;
+    };
   };
   networking.hostName = "fw13";
   steam.enable = true;

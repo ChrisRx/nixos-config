@@ -55,5 +55,17 @@
         clean until the good parts are merged back by hand.
       '';
     };
+
+    # One flag per compositor plugin, all off: each is built from source
+    # against the exact compositor, so an importer opts into the build cost and
+    # the breakage risk per plugin. Read on the home side, which skips the build
+    # and the ~/.config/hypr/plugins link, and from ../desktop/hyprland/plugins.lua
+    # through the generated enabled_plugins.lua, so the lua follows these in
+    # either mutableConfig mode.
+    plugins = {
+      gloview.enable = lib.mkEnableOption "the gloview workspace overview plugin";
+      kineticScroll.enable = lib.mkEnableOption "the hypr-kinetic-scroll plugin";
+      hypr3d.enable = lib.mkEnableOption "the Hypr3D plugin and its panorama";
+    };
   };
 }
