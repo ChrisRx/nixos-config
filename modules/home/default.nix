@@ -97,6 +97,11 @@ in
         keychron-udev-rules
         krita
         libresprite
+        blender
+        python3
+        asciiquarium
+        cmatrix
+        cbonsai
       ]
       ++ lib.lists.optionals (cfg.fonts.enable || cfg.all.enable) [
         nerd-fonts."m+"
