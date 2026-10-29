@@ -7,7 +7,7 @@
   # This repo's flake inputs, set by homeModules.hyprland in ../../../flake.nix.
   # Not the usual `inputs`: a consumer flake that passes its own `inputs`
   # through extraSpecialArgs would shadow a `_module.args.inputs`, and its
-  # inputs have no gloview or Hypr3D.
+  # inputs have no gloview or hypr-world.
   flakeInputs,
   ...
 }:
@@ -90,21 +90,15 @@ let
 
   # Hyprspace = flakeInputs.Hyprspace.packages.${pkgs.stdenv.hostPlatform.system}.Hyprspace;
 
-  # All three plugins below are packaged in-tree from their input's source,
-  # with `hyprlandPkg` handed in explicitly so each is compiled against the
-  # same build the session runs.
+  # The plugins below are built from their input's source, with
+  # `hyprlandPkg` handed in explicitly so each is compiled against the same
+  # build the session runs.
   #
   # Packaged in-tree rather than taken from a flake output, because upstream
   # publishes neither. See ./hypr-kinetic-scroll.nix.
   hypr-kinetic-scroll = pkgs.callPackage ./hypr-kinetic-scroll.nix {
     hyprland = hyprlandPkg;
     src = flakeInputs.hypr-kinetic-scroll;
-  };
-
-  # Same arrangement, same reason. See ./hypr3d.nix.
-  hypr3d = pkgs.callPackage ./hypr3d.nix {
-    hyprland = hyprlandPkg;
-    src = flakeInputs.Hypr3D;
   };
 
   # Same arrangement, different reason: gloview does ship a flake, and
@@ -118,36 +112,41 @@ let
     src = flakeInputs.gloview;
   };
 
-  # The 360-degree backdrop for hypr3d's room, wired up in ./plugins.lua under
-  # `world.panorama`. 2048x1024 of starfield with a crescent-lit ice planet.
+  # The app and its plugin, from the source's own nix files rather than
+  # in-tree ones, since the source is ours. The plugin has the app's store
+  # path built in, which is what the world key launches. The app from
+  # unstable, whose Rust is new enough for Bevy.
+  hypr-world = unstable.callPackage "${flakeInputs.hypr-world}/package.nix" { };
+  hypr-world-plugin = pkgs.callPackage "${flakeInputs.hypr-world}/plugin/default.nix" {
+    hyprland = hyprlandPkg;
+    app = hypr-world;
+  };
+
+  # The 360-degree backdrop around hypr-world's house, wired up in
+  # ./plugins.lua under `world.panorama`. 2048x1024 of starfield with a
+  # crescent-lit ice planet.
   #
-  # fetchurl rather than a flake input, which is the opposite of the three
-  # plugins above. Those are *sources* that get compiled and have to move with
+  # fetchurl rather than a flake input, which is the opposite of the plugins
+  # above. Those are *sources* that get compiled and have to move with
   # `nix flake update`; this is one immutable 137K asset that never wants
   # updating, and pinning it as an input would put the whole of three.js in
   # flake.lock to get at a single file.
   #
-  # The format is not a free choice. hypr3d loads this through
-  # Hyprgraphics::CImage into a cairo surface, and hyprgraphics links only
-  # libjpeg, libpng, libwebp and libjxl — there is no Radiance HDR, EXR or TIFF
-  # codec anywhere in it, so the .hdr files that panoramas are normally
-  # distributed as (Poly Haven's whole library, NASA's star maps) load as
-  # nothing and leave the default void behind. LDR, and exactly 2:1: the shader
-  # maps longitude across the full width and latitude pole to pole over the
-  # full height, so any other aspect ratio is stretched rather than cropped.
+  # LDR (the app reads JPEG and PNG), and exactly 2:1: longitude maps across
+  # the full width and latitude pole to pole over the full height, so any
+  # other aspect ratio is stretched rather than cropped.
   #
-  # Space suits the room better than the usual landscape HDRI for a reason
-  # worth keeping: equirectangular projection smears the poles, and a landscape
+  # Space suits it better than the usual landscape HDRI for a reason worth
+  # keeping: equirectangular projection smears the poles, and a landscape
   # capture puts a visibly stretched blob directly overhead and underfoot,
   # exactly where you look when flying. A starfield is near-uniform there and
-  # hides it. It is also dark enough that window quads keep their contrast.
+  # hides it.
   #
-  # Provenance is the one loose end. It arrived in three.js via PR #29715 (the
-  # LensflareNode addon, Oct 2024) with no credit file and no metadata beyond a
-  # Google ICC profile, so unlike the Poly Haven material in the same directory
-  # it carries no stated licence. Fine as the personal backdrop it is; resolve
-  # it before this image ends up anywhere public.
-  hypr3dPanorama = pkgs.fetchurl {
+  # From Space Spheremaps, under CC BY 4.0 with attribution waived
+  # (https://www.spacespheremaps.com/about/#licensing), credited anyway in
+  # ../../../README.md. Fetched from the copy three.js carries (PR #29715,
+  # the LensflareNode addon).
+  panorama = pkgs.fetchurl {
     url = "https://raw.githubusercontent.com/mrdoob/three.js/r180/examples/textures/equirectangular/ice_planet_close.jpg";
     hash = "sha256-cTHYaqzh3g1I75UrNWXMAVgaeFQ82pXyqyNFworjUAY=";
   };
@@ -303,8 +302,8 @@ in
         {
           source = "${hypr-kinetic-scroll}/lib/libhypr-kinetic-scroll.so";
         };
-    xdg.configFile."hypr/plugins/libhypr3d.so" = lib.mkIf cfg.plugins.hypr3d.enable {
-      source = "${hypr3d}/lib/libhypr3d.so";
+    xdg.configFile."hypr/plugins/libhypr-world.so" = lib.mkIf cfg.plugins.hyprWorld.enable {
+      source = "${hypr-world-plugin}/lib/libhypr-world.so";
     };
 
     # The same flags, handed to ./plugins.lua, which skips each disabled
@@ -315,21 +314,25 @@ in
       onChange = reloadHyprland;
     };
 
-    # `world.panorama` is the same problem as the three .so paths above and gets
-    # the same answer: ./plugins.lua names it, ./plugins.lua has no nix
-    # interpolation, so the store path is held here and the lua points at a
-    # fixed name in $HOME. Not under plugins/ because that directory is what
-    # hl.plugin.load() reads and only .so files belong in it, and not in
-    # ~/.config/wallpapers either — that one is noctalia's picker directory, and
-    # an equirectangular image is badly distorted shown flat as a desktop
-    # background.
+    # `world.panorama` and `world.sound` are the same problem as the .so paths
+    # above and get the same answer: ./plugins.lua names them, ./plugins.lua
+    # has no nix interpolation, so the store paths are held here and the lua
+    # points at fixed names in $HOME. Not under plugins/ because that directory
+    # is what hl.plugin.load() reads and only .so files belong in it, and the
+    # panorama not in ~/.config/wallpapers either: that one is noctalia's
+    # picker directory, and an equirectangular image is badly distorted shown
+    # flat as a desktop background.
     #
-    # The plugin stats this path every frame and reloads the texture when the
-    # mtime changes, so a different image is live on the next switch without a
-    # reload. A path that does not exist is not silently ignored: it raises an
-    # on-screen "[hypr3d] panorama file not found" notification, once per path.
-    xdg.configFile."hypr/panorama.jpg" = lib.mkIf cfg.plugins.hypr3d.enable {
-      source = hypr3dPanorama;
+    # The app looks at the panorama's mtime each time the world comes into
+    # view and reloads it when it moved, so a different image is live on the
+    # next switch without a restart.
+    xdg.configFile."hypr/panorama.jpg" = lib.mkIf cfg.plugins.hyprWorld.enable {
+      source = panorama;
+    };
+    # makoto-ae-swoosh-2-359826 from Pixabay, under its own license, not MIT:
+    # see ./swoosh.wav.license.
+    xdg.configFile."hypr/swoosh.wav" = lib.mkIf cfg.plugins.hyprWorld.enable {
+      source = ./swoosh.wav;
     };
 
     # ../wallpapers, linked into $HOME rather than interpolated into

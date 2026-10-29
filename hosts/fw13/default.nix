@@ -16,7 +16,7 @@
     plugins = {
       gloview.enable = true;
       kineticScroll.enable = true;
-      hypr3d.enable = true;
+      hyprWorld.enable = true;
     };
   };
   networking.hostName = "fw13";

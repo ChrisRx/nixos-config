@@ -33,21 +33,11 @@
       url = "github:savonovv/hypr-kinetic-scroll";
       flake = false;
     };
-    # Source only, same as above: no flake upstream. Built by
-    # ./modules/desktop/hyprland/hypr3d.nix against the compositor's dev
-    # output, which is exactly the headersRoot layout its CMakeLists wants.
-    # Jolt is vendored in-tree rather than submoduled, so the plain fetch is
-    # the whole source.
-    #
-    # Pinned to a rev, not a branch, because the five patches in
-    # ./modules/desktop/hyprland/hypr3d.nix are written against this exact
-    # tree and `git apply` is not fuzzy about it — upstream is pre-release and
-    # rewrites the files they touch, so letting `nix flake update` carry this
-    # input forward is what breaks the build. Moving it is therefore a manual
-    # step: bump the rev here, rebuild, and rebase whichever patches upstream
-    # has since absorbed or invalidated.
-    Hypr3D = {
-      url = "github:samine825/Hypr3D/7285e25cd68ee45139a4d78a83c07a44b5aba2c8";
+    # Source only, like the inputs above: the plugin has to be built against
+    # the session's compositor, so ./modules/desktop/hyprland/home.nix
+    # builds the plugin and the app from the source's own nix files.
+    hypr-world = {
+      url = "github:ChrisRx/hypr-world";
       flake = false;
     };
   };

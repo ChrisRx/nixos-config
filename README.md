@@ -115,6 +115,13 @@ A few things to note:
 * Importing both modules on one host is redundant; pick whichever layer should own the editor.
 * Supported on `x86_64-linux` and `aarch64-darwin`. `x86_64-darwin` does not work, as nixpkgs-unstable has dropped it.
 
+## Credits
+
+This repo's MIT license (LICENSE) does not cover the files below, which keep their own licenses.
+
+* The panorama around hypr-world's house (`modules/desktop/hyprland/home.nix`) is from [Space Spheremaps](https://www.spacespheremaps.com/), under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+* The sound as hypr-world flies in and out (`modules/desktop/hyprland/swoosh.wav`) is "Swoosh 2" by Makoto from [Pixabay](https://pixabay.com/), under the [Pixabay Content License](https://pixabay.com/service/license-summary/), not MIT. See `modules/desktop/hyprland/swoosh.wav.license`.
+
 ## TODO
 
 * More configuration options for NixOS/home-manager

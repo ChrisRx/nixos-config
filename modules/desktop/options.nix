@@ -65,7 +65,7 @@
     plugins = {
       gloview.enable = lib.mkEnableOption "the gloview workspace overview plugin";
       kineticScroll.enable = lib.mkEnableOption "the hypr-kinetic-scroll plugin";
-      hypr3d.enable = lib.mkEnableOption "the Hypr3D plugin and its panorama";
+      hyprWorld.enable = lib.mkEnableOption "the hypr-world plugin and app";
     };
   };
 }

@@ -228,99 +228,21 @@ if enabled.kineticScroll then
   })
 end
 
-if enabled.hypr3d then
-  hl.plugin.load(os.getenv("HOME") .. "/.config/hypr/plugins/libhypr3d.so")
+if enabled.hyprWorld then
+  -- Every time this file runs: a reload that leaves it out unloads the
+  -- plugin, and the load that follows reloads the config again.
+  hl.plugin.load(os.getenv("HOME") .. "/.config/hypr/plugins/libhypr-world.so")
 
-  -- Renders the workspace as a walkable 3D room with the windows in it as
-  -- textured quads. Experimental, and upstream targets hyprland 0.56.2, which is
-  -- what nixpkgs-unstable currently ships. The compositor now moves whenever
-  -- that input does, so expect this to be the first thing to break when it
-  -- does.
-  --
-  -- Toggle only; everything inside the mode is the plugin's own input handling
-  -- (WASD to walk, mouse to look, F3 for its debug HUD, SUPER + Left Alt to hand
-  -- the keyboard back to the focused window). Of those, SUPER + left-drag to move
-  -- a window overlaps ./binds.lua's own mouse:272 drag bind; the plugin hooks the
-  -- pointer ahead of the bind system while the mode is on, so the 3D meaning wins
-  -- there and the flat one comes back when it is off.
-  --
-  -- Toggling back OFF used to segfault the compositor: upstream tore the view
-  -- down from inside the frame that noticed the exit transition had finished, and
-  -- the relayout that unghosting triggers nulled the monitor the compositor's own
-  -- endRender() was still holding. ./hypr3d.nix patches the teardown onto the
-  -- plugin's frame-pump timer instead; see that file for the whole chain.
-  hl.bind(mod .. " + L", hl.plugin.hypr3d.toggle)
+  -- Launches the app the first time, then shows and hides it.
+  hl.bind(mod .. " + L", hl.plugin.hypr_world.toggle)
 
-  -- Unlike the two plugins above this one does not read `plugin.*` out of
-  -- hl.config(): it installs its own hl.plugin.hypr3d.config({ world = …,
-  -- windows = …, player = …, scene = … }), which has to be called after the load
-  -- above, and every key in it is optional. Everything left out keeps its
-  -- default: a 40x40 grid platform with no panorama, walking (not flying)
-  -- physics and no loaded models, which needs no assets on disk — and any scene
-  -- entry would point at a .glb path outside the store. See upstream's README
-  -- for the full option table.
-  hl.plugin.hypr3d.config({
+  -- The app's own settings, passed on to it as they are (see the hypr-world
+  -- README). The panorama and the sound are linked there by ./home.nix.
+  hl.plugin.hypr_world.config({
     world = {
-      -- The 360-degree backdrop, replacing the default flat void. Sampled
-      -- equirectangularly around the camera: longitude across the image width,
-      -- latitude pole to pole down its height, so the file has to be exactly 2:1
-      -- or it stretches.
-      --
-      -- A fixed ~/.config/hypr name for the same reason as the .so paths above —
-      -- this file is hand-edited and has no nix interpolation — with ./home.nix
-      -- holding the store path and linking it here. Tilde is expanded by the
-      -- plugin itself, so the literal is fine and an absolute path is not needed.
-      --
-      -- Swapping it is a ./home.nix change, not a change here: the plugin
-      -- re-stats this path every frame and reloads whenever the mtime moves, so
-      -- the new image is up on the next switch with no reload and no restart.
       panorama = "~/.config/hypr/panorama.jpg",
-    },
-
-    windows = {
-      -- `layer_exclude` is not an upstream option; ./hypr3d.nix patches it in.
-      -- It is a regex matched against the whole layer-shell namespace, and
-      -- anything matching never becomes an entity at all. Upstream's behaviour
-      -- is "" — every visible non-background layer joins the room, the bar, the
-      -- dock, the OSD and each notification alike.
-      --
-      -- Only the bars are excluded, and deliberately only the bars. A bar is
-      -- screen furniture bolted to a monitor edge, and the room has no edges to
-      -- bolt it to; dropping it also stops its quad swallowing the crosshair,
-      -- since an invisible full-screen overlay layer is aimable too. The 2D bar
-      -- is back the instant the view is toggled off — it was never hidden, only
-      -- overdrawn by the 3D pass.
-      --
-      -- Everything else stays IN on purpose. rofi (namespace "rofi", on the
-      -- overlay layer) and noctalia's launcher and panels are the only way to
-      -- open a window from inside the view, so excluding them is a trap: the
-      -- bind fires, the surface maps, and nothing appears. Their visibility
-      -- comes from the spawn-offset patch instead, which stops a new surface
-      -- landing exactly inside the window it opened over.
-      --
-      -- The namespaces match ./hyprland.lua's own layer_rule, which is the
-      -- inventory of what noctalia actually maps: noctalia-bar-<name>
-      -- plus notification, dock, panel, attached-panel, osd and
-      -- window-switcher. Keep the two in step if that rule gains a name.
-      layer_exclude = "^noctalia-bar-.*$",
-    },
-
-    player = {
-      -- Feet position at entry; the eyes ride 1.62 units above it.
-      --
-      -- REDUNDANT, and kept only so the decision is yours: this was an attempt
-      -- to fix the floor cropping the bottom off a window, and it could not. A
-      -- quad is centred on the eye, the floor depth-rejects everything below
-      -- y = 0, and so a window taller than twice the eye height loses its
-      -- bottom — but the eye is wherever the player left it, and this value
-      -- only places the FIRST pose. Descend with Ctrl, or open a window after
-      -- descending, and the crop was back, which is why it seemed to work and
-      -- then stopped. ./hypr3d.nix's spawn-above-floor patch clamps the spawn
-      -- centre instead, which holds at any eye height.
-      --
-      -- Remove the whole `player` block to enter standing on the platform like
-      -- upstream does; 1.2 just starts the view floating 1.2 units up.
-      spawn = { y = 1.2 },
+      sound = "~/.config/hypr/swoosh.wav",
+      other_workspace_fps = 15,
     },
   })
 end
