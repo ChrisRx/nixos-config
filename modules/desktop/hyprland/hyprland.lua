@@ -118,9 +118,12 @@ hl.config({
     resize_on_border = true,
     extend_border_grab_area = 15,
   },
-  debug = {
-    damage_tracking = 0,
+  cursor = {
+    no_hardware_cursors = 1,
   },
+  -- debug = {
+  --   damage_tracking = 0,
+  -- },
   decoration = {
     -- screen_shader = "/etc/nixos/nixos-config/modules/desktop/hyprland/shaders/obra_dinn.glsl",
     -- screen_shader = "/etc/nixos/nixos-config/modules/desktop/hyprland/shaders/vhs.frag",
@@ -130,6 +133,9 @@ hl.config({
     shadow = {
       enabled = false
     },
+  },
+  render = {
+    direct_scanout = 2,
   },
 })
 
