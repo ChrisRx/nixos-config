@@ -260,7 +260,21 @@ in
     home.packages = [
       noctaliaSession
       hyprCapture
+      # The image viewer; ./hyprland.lua floats it. Its imv-dir launcher
+      # opens the folder a file is in, starting at that file.
+      pkgs.imv
     ];
+
+    # Images open in imv-dir, which steps through the rest of the folder.
+    xdg.mimeApps.defaultApplications = lib.genAttrs [
+      "image/png"
+      "image/jpeg"
+      "image/gif"
+      "image/webp"
+      "image/bmp"
+      "image/tiff"
+      "image/svg+xml"
+    ] (_: "imv-dir.desktop");
 
     # uwsm sources this for every compositor it starts, before the session's
     # units come up, so it reaches everything launched inside the session.

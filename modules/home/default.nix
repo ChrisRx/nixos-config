@@ -168,5 +168,35 @@ in
         nerd-fonts.victor-mono
         nerd-fonts.zed-mono
       ];
+
+    # Which app opens what, the whole of ~/.config/mimeapps.list. Read-only
+    # once managed: an app that sets itself as a default (Firefox's "make
+    # default") cannot write it, so defaults are changed here. More come from
+    # other modules (the image viewer, ../desktop/hyprland/home.nix).
+    xdg.mimeApps = {
+      enable = true;
+      defaultApplications =
+        lib.genAttrs [
+          "x-scheme-handler/http"
+          "x-scheme-handler/https"
+          "x-scheme-handler/chrome"
+          "text/html"
+          "application/x-extension-htm"
+          "application/x-extension-html"
+          "application/x-extension-shtml"
+          "application/xhtml+xml"
+          "application/x-extension-xhtml"
+          "application/x-extension-xht"
+        ] (_: "firefox.desktop")
+        // {
+          # Claude Code's sign-in links. It writes the .desktop file itself,
+          # in ~/.local/share/applications.
+          "x-scheme-handler/claude-cli" = "claude-code-url-handler.desktop";
+        };
+    };
+    # Both were written by hand or by apps before home-manager took them over,
+    # and every entry they held is above.
+    xdg.configFile."mimeapps.list".force = true;
+    xdg.dataFile."applications/mimeapps.list".force = true;
   };
 }

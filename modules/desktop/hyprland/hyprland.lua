@@ -68,6 +68,14 @@ hl.window_rule({
   size = { 1080, 920 },
 })
 
+-- imv, the image viewer (./home.nix): floating (centred, as a new floating
+-- window is), at three quarters of the monitor's 1440x960.
+hl.window_rule({
+  match = { class = "^imv$" },
+  float = true,
+  size = { 1080, 720 },
+})
+
 -- psxplay (~/src/ChrisRx/psxsdk/tools/psxplay), run directly or as
 -- `go tool psxplay`. It never sets an X11 class, so it gets ebiten's default
 -- Ebitengine-Application, which would match every ebiten program. Its title is
