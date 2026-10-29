@@ -95,11 +95,11 @@
     "hypr-world": {
       "flake": false,
       "locked": {
-        "lastModified": 1793289183,
-        "narHash": "sha256-RzOJKmrPqYB7Q58NRCd2f5qPRNfHKA5KJJNS7+jE1Pw=",
+        "lastModified": 1793300984,
+        "narHash": "sha256-Z9d7pWe7QH4195K515g2B22LS+kWAvu22yzEwv1umds=",
         "owner": "ChrisRx",
         "repo": "hypr-world",
-        "rev": "02a155eff3f30ebe14274791d3c73e49c8922fb6",
+        "rev": "ee68fb4106d143414b5e23b707a42f1f2e6db833",
         "type": "github"
       },
       "original": {
