@@ -1,0 +1,10 @@
+{
+  "surface": "{{ colors.surface.default.hex }}",
+  "control": "{{ colors.surface_container.default.hex }}",
+  "control_hover": "{{ colors.surface_bright.default.hex }}",
+  "outline": "{{ colors.outline_variant.default.hex }}",
+  "text": "{{ colors.on_surface.default.hex }}",
+  "subtext": "{{ colors.on_surface_variant.default.hex }}",
+  "accent": "{{ colors.primary.default.hex }}",
+  "on_accent": "{{ colors.on_primary.default.hex }}"
+}

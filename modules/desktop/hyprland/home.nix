@@ -223,6 +223,31 @@ let
 
     exec ${lib.getExe config.programs.noctalia.package} "$@"
   '';
+
+  # The Print bind's screenshot/recording tool; see ./capture.sh, with
+  # ./capture.qml as its dialog.
+  hyprCapture = pkgs.writeShellApplication {
+    name = "hypr-capture";
+    runtimeInputs = [
+      hyprlandPkg
+      pkgs.quickshell
+      pkgs.grim
+      pkgs.slurp
+      pkgs.wl-screenrec
+      pkgs.wl-clipboard
+      pkgs.satty
+      pkgs.libnotify
+      pkgs.systemd
+      config.programs.noctalia.package
+      pkgs.pulseaudio
+      pkgs.jq
+    ];
+    text = ''
+      capture_qml=${./capture.qml}
+      capture_icon_font=${config.programs.noctalia.package}/share/noctalia/assets/fonts/noctalia-tabler.ttf
+    ''
+    + builtins.readFile ./capture.sh;
+  };
 in
 {
   # noctalia's home module is imported by homeModules.hyprland in
@@ -232,7 +257,10 @@ in
   config = lib.mkIf cfg.enable {
     # ./hyprland.lua starts the session's bar through this rather than calling
     # `noctalia` directly, so the wrapper has to be on PATH for it to find.
-    home.packages = [ noctaliaSession ];
+    home.packages = [
+      noctaliaSession
+      hyprCapture
+    ];
 
     # uwsm sources this for every compositor it starts, before the session's
     # units come up, so it reaches everything launched inside the session.
@@ -582,6 +610,12 @@ in
           wallpaper_scheme = "faithful";
           # source = "builtin";
           # builtin = "Catppuccin";
+
+          # The palette for hypr-capture's dialog (./capture.qml reads it).
+          templates.user.hypr-capture = {
+            input_path = "${./capture-colors.json}";
+            output_path = "$XDG_CACHE_HOME/hypr-capture/colors.json";
+          };
         };
 
         wallpaper = {

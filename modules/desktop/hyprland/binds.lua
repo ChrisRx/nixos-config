@@ -102,7 +102,9 @@ hl.bind("XF86AudioNext", hl.dsp.exec_cmd("noctalia msg media next"), { locked = 
 hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("noctalia msg media previous"), { locked = true })
 
 
-hl.bind("Print", hl.dsp.exec_cmd("noctalia msg screenshot-region"))
+-- Screenshot/recording menu from ./home.nix (hypr-capture). Pressing it again
+-- while recording stops the recording.
+hl.bind("Print", hl.dsp.exec_cmd("hypr-capture"))
 hl.bind(mod .. " + Print", hl.dsp.exec_cmd("noctalia msg screenshot-fullscreen"))
 
 -- mouse movements
