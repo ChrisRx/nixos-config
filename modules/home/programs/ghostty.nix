@@ -5,7 +5,7 @@
     installVimSyntax = true;
     settings = {
       background-opacity = 0.85;
-      maximize = true;
+      maximize = false;
       window-decoration = false;
       font-size = 8.5;
       background = "#101010";
