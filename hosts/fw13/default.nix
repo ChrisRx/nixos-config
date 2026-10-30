@@ -39,6 +39,15 @@
     };
   };
 
+  # 7.3.0 oopses in mt7925e_mac_reset() when the wifi firmware times out while
+  # devices thaw after the hibernate snapshot, so the image is never written
+  # and the machine sits dark until forced off. Introduced by c4edf9e3e0e5
+  # ("wifi: mt76: mt7925: replace shared rx irq masks with per-chip
+  # definitions"), fixed upstream by c182bfe944eb ("wifi: mt76: mt7925: fix
+  # reset panic caused by the WM2 rx irq mask"). Drop this pin once a 7.3.x
+  # release carries the fix.
+  core.kernel.version = "7.2";
+
   # Hibernate writes the whole image to one swap area, and the 8.8G partition
   # in ./hardware-configuration.nix is too small for it. The kernel snapshots
   # ~24G (image_size defaults to 2/5 of the 62G of RAM) and leans on lzo to fit
