@@ -48,7 +48,11 @@ die() {
   note "ERROR: $*"
   exit 1
 }
-get() { curl -sSf --max-time 30 --retry 3 --retry-delay 2 "$@"; }
+# Unauthenticated API calls share a 60/hour limit per IP, which hosted runners
+# exhaust, so CI passes GITHUB_TOKEN to get a per-repo limit instead.
+auth=()
+[ -z "${GITHUB_TOKEN:-}" ] || auth=(-H "Authorization: Bearer $GITHUB_TOKEN")
+get() { curl -sSf --max-time 30 --retry 3 --retry-delay 2 "${auth[@]}" "$@"; }
 
 cache=$(mktemp -d)
 trap 'rm -rf "$cache"' EXIT

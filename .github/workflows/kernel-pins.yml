@@ -36,6 +36,8 @@ jobs:
       # The floor and branch are recorded in the table, so the scheduled run
       # needs no arguments; a dispatch may override the floor to trim it.
       - name: Refresh table
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: nix develop --command task kernel:pin -- ${{ inputs.min_major }}
 
       # Body is built here because the commit message is an action input; the
