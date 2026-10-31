@@ -16,6 +16,10 @@
       # prefix key again
       set -g repeat-time 1000
 
+      # Let apps send escape sequences straight to the outer terminal, so
+      # neovim (snacks.nvim) can draw images with the kitty graphics protocol
+      set -gq allow-passthrough on
+
       # Time in milliseconds for which tmux waits after an escape
       set -g escape-time 0
 

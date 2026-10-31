@@ -10,6 +10,7 @@
     ./lualine.nix
     ./none-ls.nix
     ./nvim-tree.nix
+    ./snacks.nix
     ./telescope.nix
     ./treesitter.nix
   ];
