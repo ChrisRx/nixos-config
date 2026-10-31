@@ -1,0 +1,60 @@
+name: Kernel 7.3.2 reminder
+
+# The fw13 host pins 7.2 until the mt7925 hibernate oops fix (upstream
+# c182bfe944eb) reaches a 7.3.x stable release. This opens one issue when 7.3.2
+# or later is out, then no-ops; delete the workflow once the pin is gone.
+on:
+  schedule:
+    - cron: '43 14 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open issue if 7.3.2 is out
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TITLE: 'Kernel 7.3.2 is out: check the fw13 7.2 pin'
+        run: |
+          set -euo pipefail
+
+          # Closed issues count too, so closing it does not reopen it next day.
+          if [ -n "$(gh issue list --state all --search "in:title \"$TITLE\"" --json number --jq '.[].number')" ]; then
+            echo 'Issue already exists.'
+            exit 0
+          fi
+
+          latest=$(curl -sSf https://www.kernel.org/releases.json |
+            jq -r '[.releases[].version | select(test("^7\\.3\\.[0-9]+$"))] | first // empty')
+          patch=${latest##*.}
+          if [ -z "$latest" ] || [ "$patch" -lt 2 ]; then
+            echo "Latest 7.3 release: ${latest:-none}"
+            exit 0
+          fi
+
+          # The fix may land in any release from 7.3.2 up to the latest one.
+          found=''
+          for n in $(seq 2 "$patch"); do
+            if curl -sSf "https://cdn.kernel.org/pub/linux/kernel/v7.x/ChangeLog-7.3.$n" |
+                grep -q 'c182bfe944eb'; then
+              found="7.3.$n"
+              break
+            fi
+          done
+
+          if [ -n "$found" ]; then
+            status="The mt7925 WM2 rx irq mask fix (upstream c182bfe944eb) is in the $found changelog."
+          else
+            status="The mt7925 WM2 rx irq mask fix (upstream c182bfe944eb) is NOT in any changelog from 7.3.2 to $latest. Keep the pin."
+          fi
+
+          gh issue create --title "$TITLE" --body "@ChrisRx $latest is out.
+
+          $status
+
+          Before removing \`core.kernel.version = \"7.2\"\` from \`hosts/fw13/default.nix\`, check that the \`7.3\` entry in \`modules/nixos/core/kernel-pins.json\` is ${found:-the release with the fix} or later. Then delete \`.github/workflows/kernel-release-reminder.yml\`."
