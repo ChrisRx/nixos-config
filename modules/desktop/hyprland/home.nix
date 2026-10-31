@@ -372,7 +372,7 @@ in
       source = panorama;
     };
     # makoto-ae-swoosh-2-359826 from Pixabay, under its own license, not MIT:
-    # see ./swoosh.wav.license.
+    # see ./swoosh-license.txt.
     xdg.configFile."hypr/swoosh.wav" = lib.mkIf cfg.plugins.hyprWorld.enable {
       source = ./swoosh.wav;
     };
