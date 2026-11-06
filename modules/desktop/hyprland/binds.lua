@@ -54,8 +54,10 @@ hl.bind(mod .. " + SHIFT + l", hl.dsp.window.move({ direction = "right" }))
 hl.bind(mod .. " + SHIFT + k", hl.dsp.window.move({ direction = "up" }))
 hl.bind(mod .. " + SHIFT + j", hl.dsp.window.move({ direction = "down" }))
 
--- Execute Rofi with only the SUPER key
-hl.bind(mod .. " + Super_L", hl.dsp.exec_cmd("pkill rofi || rofi -show drun"))
+-- Execute Rofi with only the SUPER key. On the release: since 0.57 a press bind
+-- on Super_L fires as soon as Super goes down, so on every chord as well. A
+-- release bind is shadowed by any bind that fires while Super is held.
+hl.bind(mod .. " + Super_L", hl.dsp.exec_cmd("pkill rofi || rofi -show drun"), { release = true })
 
 hl.bind(mod .. " + Q", hl.dsp.window.close())
 hl.bind(mod .. " + F", hl.dsp.window.fullscreen())
