@@ -52,9 +52,11 @@ in
         kubectl
         tilt
         cmake
+        kubectx
 
         sqlite
         duckdb
+        gh
       ]
       ++ lib.lists.optionals (cfg.cloud.enable || cfg.all.enable) [
         (google-cloud-sdk.withExtraComponents [ google-cloud-sdk.components.gke-gcloud-auth-plugin ])
