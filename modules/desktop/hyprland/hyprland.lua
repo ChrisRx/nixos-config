@@ -28,6 +28,15 @@
 local terminal = require("binds").terminal
 require("plugins")
 
+-- The laptop panel. 2880x1920 at 1.6 is 1800x1200 logical; scales that divide
+-- the panel evenly avoid hyprland rejecting the value or snapping it to another.
+hl.monitor({
+  output = "eDP-1",
+  mode = "preferred",
+  position = "auto",
+  scale = 2,
+})
+
 hl.config({
   misc = {
     force_default_wallpaper = 0,
@@ -69,11 +78,11 @@ hl.window_rule({
 })
 
 -- imv, the image viewer (./home.nix): floating (centred, as a new floating
--- window is), at three quarters of the monitor's 1440x960.
+-- window is), at three quarters of the monitor's 1800x1200.
 hl.window_rule({
   match = { class = "^imv$" },
   float = true,
-  size = { 1080, 720 },
+  size = { 1350, 900 },
 })
 
 -- psxplay (~/src/ChrisRx/psxsdk/tools/psxplay), run directly or as
