@@ -1,4 +1,4 @@
-{ ... }: {
+{ lib, pkgs, ... }: {
   imports = [
     ./hardware-configuration.nix
     ../../modules/nixos/core
@@ -15,7 +15,7 @@
     mutableConfig = true;
     plugins = {
       gloview.enable = true;
-      kineticScroll.enable = true;
+      kineticScroll.enable = false;
       hyprWorld.enable = true;
     };
   };
@@ -90,6 +90,40 @@
       defaultNetwork.settings.dns_enabled = true;
     };
   };
+  # The containers module only writes the v1 format, so registries.conf is
+  # replaced outright and virtualisation.containers.registries no longer
+  # applies.
+  environment.etc."containers/registries.conf".source = lib.mkForce (
+    (pkgs.formats.toml { }).generate "registries.conf" {
+      unqualified-search-registries = [
+        "docker.io"
+        "quay.io"
+      ];
+      registry = [
+        # Needed for k3d image registry pushes
+        {
+          location = "127.0.0.1:5005";
+          insecure = true;
+        }
+      ];
+    }
+  );
+
+  # Rootless kind under podman. The kubelet in the node container needs the
+  # cpuset controller, which systemd's stock user@.service leaves out of its
+  # Delegate=pids memory cpu.
+  systemd.services."user@".serviceConfig.Delegate = "yes";
+  # A rootless container cannot load kernel modules, so the ones kube-proxy's
+  # iptables rules need have to be loaded on the host up front.
+  boot.kernelModules = [
+    "ip6_tables"
+    "ip6table_nat"
+    "ip_tables"
+    "iptable_nat"
+  ];
+  # Without this kind finds dockerCompat's `docker` shim and drives podman
+  # through the docker provider.
+  environment.sessionVariables.KIND_EXPERIMENTAL_PROVIDER = "podman";
 
   system.stateVersion = "24.11";
 }
